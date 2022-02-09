@@ -15,6 +15,8 @@ def datasets_stats(datasets=None):
     if not datasets:
         datasets = get_datasets_names_from_db('facets')
 
+    print(datasets)
+    
     with open('./sql/stats/dataset_stats.sql') as f:
         stats_query: str = f.read()
 
@@ -43,7 +45,8 @@ def export_distribution_to_csv(dataset, tablename, columnname):
 def export_degrees_to_csv(dataset: str, q: int):
     logger.info(f"{dataset}: Exporting distribution of degrees for {q}-simplices to csv")
     table_name = f'q{q}_faces'
-    column_names = ['maximal_degree', 'maximal_degree_u', 'weighted_maximal_degree', 'weighted_maximal_degree_u']
+    # column_names = ['maximal_degree', 'maximal_degree_u', 'weighted_maximal_degree', 'weighted_maximal_degree_u']
+    column_names = ['maximal_degree', 'maximal_degree_u', 'weighted_maximal_degree']
     if q == 0:
         column_names.append('classical_degree')
 
@@ -66,6 +69,8 @@ def export_degrees_to_csv(dataset: str, q: int):
 def degrees_stats(percentiles: str = '{.5,.9,.99}', reset=False):
     with open('./sql/stats/degrees.sql') as f:
         stats_sql: str = f.read()
+    with open('./sql/stats/degrees_q0_faces.sql') as f:
+        stats_sql_q0_faces: str = f.read()
 
     rows = db.execute_queries(
         "SELECT schemaname AS dataset, tablename AS qfaces_tablename FROM pg_catalog.pg_tables " +
@@ -81,11 +86,7 @@ def degrees_stats(percentiles: str = '{.5,.9,.99}', reset=False):
 
         logger.info(f'{dataset}: Generating statistics for {q}-faces'' degrees')
 
-        db.execute_queries([f'''
-        CREATE INDEX IF NOT EXISTS {qfaces_tablename}_classical_degree 
-            ON "{dataset}".{qfaces_tablename} (classical_degree);
-        ''',
-                            f'''
+        queries = [f'''
         CREATE INDEX IF NOT EXISTS {qfaces_tablename}_maximal_degree 
             ON "{dataset}".{qfaces_tablename} (maximal_degree);
         ''',
@@ -96,13 +97,26 @@ def degrees_stats(percentiles: str = '{.5,.9,.99}', reset=False):
                             f'''
         CREATE INDEX IF NOT EXISTS {qfaces_tablename}_weighted_maximal_degree 
             ON "{dataset}".{qfaces_tablename} (weighted_maximal_degree);
-        ''',
-                            f'''
-        CREATE INDEX IF NOT EXISTS {qfaces_tablename}_weighted_maximal_degree_u 
-            ON "{dataset}".{qfaces_tablename} (weighted_maximal_degree_u);
-        '''])
+        '''
+        #                     f'''
+        # CREATE INDEX IF NOT EXISTS {qfaces_tablename}_weighted_maximal_degree_u 
+        #     ON "{dataset}".{qfaces_tablename} (weighted_maximal_degree_u);
+        # '''
+        ]
 
-        query = stats_sql.format(dataset, q, percentiles)
+        if q == 0:
+            queries.append(f'''
+        CREATE INDEX IF NOT EXISTS {qfaces_tablename}_classical_degree 
+            ON "{dataset}".{qfaces_tablename} (classical_degree);
+        ''')
+
+        db.execute_queries(queries)
+
+        if q == 0:
+            query = stats_sql_q0_faces.format(dataset, q, percentiles)
+        else:
+            query = stats_sql.format(dataset, q, percentiles)
+        
         rows = db.execute_queries(
             "SELECT FROM pg_catalog.pg_tables WHERE tablename = 'degrees_stats'", return_rows=True, dict_cursor=True)
         with db.connection.cursor() as cursor:

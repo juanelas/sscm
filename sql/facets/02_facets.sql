@@ -24,7 +24,7 @@ DECLARE
     intersection int[];
     first        bool := true;
 BEGIN
-    FOR usimplex_arr in (SELECT usimplex_ids FROM "{0}".dnodes WHERE id = ANY ($1))
+    FOR usimplex_arr in (SELECT usimplex_ids FROM "{0}".nodes WHERE id = ANY ($1))
         LOOP
             IF first THEN
                 intersection := usimplex_arr.usimplex_ids;
@@ -60,9 +60,10 @@ $$
 
 DROP TABLE IF EXISTS "{0}".facets;
 CREATE TABLE "{0}".facets AS
-SELECT id, node_ids, dnode_ids, q, icount(dnode_ids) - 1 AS dq
+SELECT id, node_ids, q
+-- SELECT id, node_ids, dnode_ids, q, icount(dnode_ids) - 1 AS dq
 FROM "{0}".usimplices
-WHERE "{0}".is_facet(dnode_ids);
+WHERE "{0}".is_facet(node_ids);
 CREATE INDEX facets_id_idx ON "{0}".facets (id);
 CREATE INDEX facets_q_idx ON "{0}".facets (q);
 
@@ -74,3 +75,23 @@ CREATE INDEX facets_q_idx ON "{0}".facets (q);
 -- SELECT id, node_ids, dnode_ids, q, icount(dnode_ids) as dq
 -- FROM "{0}".usimplices
 -- WHERE is_facet;
+
+DROP TABLE IF EXISTS "{0}".facets_nodes CASCADE;
+CREATE TABLE "{0}".facets_nodes AS
+SELECT id               AS facet_id,
+       unnest(node_ids) AS node_id
+FROM "{0}".facets;
+CREATE INDEX facets_nodes_facet_id ON "{0}".facets_nodes (facet_id);
+CREATE INDEX facets_nodes_node_id ON "{0}".facets_nodes (node_id);
+
+
+ALTER TABLE "{0}".nodes
+    ADD COLUMN IF NOT EXISTS facet_ids int[];
+UPDATE "{0}".nodes
+SET facet_ids = fn.facet_ids
+FROM (
+         SELECT node_id, array_agg(facet_id) AS facet_ids
+         FROM "{0}".facets_nodes
+         GROUP BY node_id
+     ) fn
+WHERE node_id = id;

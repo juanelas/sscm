@@ -63,7 +63,9 @@ def load_arxiv_files(basedir, dir_files, dataset):
                         dates = _to_list(record['metadata']['oai_dc:dc']['dc:date'])
                         _arxiv_papers.append((title, record_authors, dates))
                         paper_authors: Set[Author] = set()
-                        for record_author in record_authors:
+                        bounded_authors = 25 if len(record_authors) > 25 else len(record_authors)
+                        for i in range(bounded_authors):
+                            record_author = record_authors[i]
                             try:
                                 author = Author(record_author)
                                 paper_authors.add(author)

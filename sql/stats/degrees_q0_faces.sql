@@ -1,17 +1,16 @@
 -- {{0}} is the dataset,
--- {{1}} is q,
--- {{2}} is a float array passed as a string in postgresql format; e.g. '{{.5,.6,.9,.99}}'
+-- {{1}} is a float array passed as a string in postgresql format; e.g. '{{.5,.6,.9,.99}}'
 SELECT '{0}'                                                                    AS dataset,
        {1}                                                                      AS q,
 
        -- sum(weight)::int                                                         AS "no_qfaces",
 
-      --  min(classical_degree)::int                                               AS "classical: min",
-      --  max(classical_degree)::int                                               AS "classical: max",
-      --  avg(classical_degree)::float                                             AS "classical: avg",
-      --  mode() WITHIN GROUP (ORDER BY classical_degree)                          AS "classical: most frequent value",
-      --  stddev(classical_degree)::float                                          AS "classical: stddev",
-      --  percentile_disc('{2}'::float[]) WITHIN GROUP (ORDER BY classical_degree) AS "classical: percentiles {2}",
+       min(classical_degree)::int                                               AS "classical: min",
+       max(classical_degree)::int                                               AS "classical: max",
+       avg(classical_degree)::float                                             AS "classical: avg",
+       mode() WITHIN GROUP (ORDER BY classical_degree)                          AS "classical: most frequent value",
+       stddev(classical_degree)::float                                          AS "classical: stddev",
+       percentile_disc('{2}'::float[]) WITHIN GROUP (ORDER BY classical_degree) AS "classical: percentiles {2}",
 
        min(maximal_degree)::int                                                 AS "maximal: min",
        max(maximal_degree)::int                                                 AS "maximal: max",
@@ -35,4 +34,4 @@ SELECT '{0}'                                                                    
        stddev(weighted_maximal_degree)::float                                   AS "weighted maximal: stddev",
        percentile_disc('{2}'::float[])
        WITHIN GROUP (ORDER BY weighted_maximal_degree)                          AS "weighted maximal percentiles {2}"
-FROM "{0}".q{1}_faces
+FROM "{0}".q0_faces

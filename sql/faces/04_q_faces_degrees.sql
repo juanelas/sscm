@@ -33,7 +33,7 @@ DROP TABLE IF EXISTS "{0}".q{1}_faces_tmp;
 -- );
 
 CREATE UNLOGGED TABLE "{0}".q{1}_faces_tmp AS (
-    SELECT f.face, d.maximal_degree_u, d.maximal_degree, d.weighted_maximal_degree
+    SELECT f.face, f.weight, d.maximal_degree_u, d.maximal_degree, d.weighted_maximal_degree
     FROM "{0}".q{1}_faces AS f,
         LATERAL (
             WITH facets AS (

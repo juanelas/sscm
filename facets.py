@@ -9,6 +9,7 @@ import os
 from logger import logger
 from argparse import ArgumentParser
 from configparser import ConfigParser
+from sys import exit
 from time import time
 from typing import List
 
@@ -44,29 +45,19 @@ def process_dataset(dataset: str, reset=False) -> None:
     else:
         logger.info(f'{dataset}: Already (previously) processed. Doing nothing.')
 
-    logger.info(f'{dataset}: Computing distinct nodes (dnodes)...')
-    if not db.execute_queries(f'''SELECT to_regclass('"{dataset}".dnodes');''', return_rows=True)[0][0]:
-        start = time()
-        db.execute_queries_from_path('./sql/facets/02_dnodes.sql', [dataset])
-        end = time()
-        logger.info(f'{dataset}: Done in {(end - start):.1f} seconds')
-        db.vacuum(f'ANALYZE "{dataset}".usimplices')
-    else:
-        logger.info(f'{dataset}: Already (previously) processed. Doing nothing.')
-
     logger.info(f'{dataset}: Computing facets...')
     if not db.execute_queries(f'''SELECT to_regclass('"{dataset}".facets');''', return_rows=True)[0][0]:
         start = time()
-        db.execute_queries_from_path('./sql/facets/03_facets.sql', [dataset])
+        db.execute_queries_from_path('./sql/facets/02_facets.sql', [dataset])
         end = time()
         logger.info(f'{dataset}: Done in {(end - start):.1f} seconds')
     else:
         logger.info(f'{dataset}: Already (previously) processed. Doing nothing.')
 
-    logger.info(f'{dataset}: Computing facets-nodes bidirectional relationship...')
-    if not db.execute_queries(f'''SELECT to_regclass('"{dataset}".facets_nodes');''', return_rows=True)[0][0]:
+    logger.info(f'{dataset}: Computing distinct nodes (dnodes)...')
+    if not db.execute_queries(f'''SELECT to_regclass('"{dataset}".dnodes');''', return_rows=True)[0][0]:
         start = time()
-        db.execute_queries_from_path('./sql/facets/04_facets_nodes.sql', [dataset])
+        db.execute_queries_from_path('./sql/facets/03_dnodes.sql', [dataset])
         end = time()
         logger.info(f'{dataset}: Done in {(end - start):.1f} seconds')
         db.vacuum(f'ANALYSE "{dataset}".nodes')
@@ -74,12 +65,26 @@ def process_dataset(dataset: str, reset=False) -> None:
     else:
         logger.info(f'{dataset}: Already (previously) processed. Doing nothing.')
 
+    # logger.info(f'{dataset}: Computing facets-nodes bidirectional relationship...')
+    # if not db.execute_queries(f'''SELECT to_regclass('"{dataset}".facets_nodes');''', return_rows=True)[0][0]:
+    #     start = time()
+    #     db.execute_queries_from_path('./sql/facets/04_facets_nodes.sql', [dataset])
+    #     end = time()
+    #     logger.info(f'{dataset}: Done in {(end - start):.1f} seconds')
+    #     db.vacuum(f'ANALYSE "{dataset}".nodes')
+    #     db.vacuum(f'ANALYSE "{dataset}".dnodes')
+    # else:
+    #     logger.info(f'{dataset}: Already (previously) processed. Doing nothing.')
+
 
 def main(datasets: List[str] = None, reset: bool = False):
     db.connect()
+    
     db.execute_queries_from_path('./sql/facets/common.sql', [])
     if not datasets:
         datasets = get_datasets_names_from_db()
+
+    print(datasets)
 
     for dataset in datasets:
         try:
@@ -102,11 +107,19 @@ if __name__ == "__main__":
                         "--force",
                         help="force recomputing of all tables",
                         action="store_true")
+    parser.add_argument("-l",
+                        "--listdatasets",
+                        help="do nothing but get the list available datasets to load from db",
+                        action="store_true")
 
     args = parser.parse_args()
 
+    if args.listdatasets:
+        print(",".join(get_datasets_names_from_db()))
+        exit()
     if args.datasets:
         dsets = args.datasets.split(',')
+        # print(dsets)
     else:
         dsets = None
 

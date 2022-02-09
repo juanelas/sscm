@@ -71,8 +71,8 @@ def create_q_faces(dataset, q: int, reset=False, only_distinct_faces=False, batc
         cursor.close()
         return
 
-    with tqdm(total=total,
-              desc=f"{dataset}: Inserting {q}-faces on database {config['SimplicialDB']['dbname']}") as pbar:
+    logger.info(f"{dataset}: Inserting {q}-faces on database {config['SimplicialDB']['dbname']}:")
+    with tqdm(total=total, ncols=80) as pbar:
         gen = (facet[node_ids_key] for facet in facets if facet['q'] >= q)
         j: int = 0
         query_values: Set = set()
@@ -138,13 +138,16 @@ def main(datasets: List[str] = None, q_list: List[int] = None, q_auto: bool = Fa
          only_distinct_faces=False):
     if not datasets:
         datasets = get_datasets_names_from_db()
-
+    print(datasets)
     db.connect()
 
     for dataset in datasets:
         prepare_dataset(dataset)
         if q_auto:
             median: int = get_facets_median_q(dataset)
+            if (median > 6):
+                logger.info(f'computed median of q is too big: {median}! Assuming median=6')
+                median = 6
             most_frequent_q: int = get_facets_most_frequent_q(dataset)
             q_list = sorted({0, most_frequent_q, median})
             logger.info(
