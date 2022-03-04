@@ -30,7 +30,7 @@
 DROP TABLE IF EXISTS "{0}".q0_faces_tmp;
 
 CREATE UNLOGGED TABLE "{0}".q0_faces_tmp AS (
-    SELECT f.face, f.weight, d.maximal_degree_u, d.maximal_degree, d.weighted_maximal_degree, d.classical_degree
+    SELECT f.face, f.weight, d.upper_facets, d.maximal_degree_u, d.maximal_degree, d.weighted_maximal_degree, d.classical_degree, f.node_to_qfaces_degree
     FROM "{0}".q0_faces AS f,
         LATERAL "{0}".q0_faces_degrees(f.face) AS d
 );
