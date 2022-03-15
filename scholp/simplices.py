@@ -83,7 +83,9 @@ def load_dataset_onto_db(dataset: str, batch_size: int = 500) -> None:
     j: int = 0
     query_values: List[Tuple[List[int]]] = []
     total = len(raw_simplices)
-    with tqdm(total=total, desc=f"{dataset}: Inserting simplices from dataset") as pbar:
+    
+    print(f"{dataset}: Inserting simplices from dataset")
+    with tqdm(total=total) as pbar:
         for simplex in raw_simplices:
             query_values.append((simplex,))
             j += 1

@@ -1,5 +1,5 @@
 import os
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from configparser import ConfigParser
 from itertools import combinations
 from time import time
@@ -163,11 +163,15 @@ def main(datasets: List[str] = None, q_list: List[int] = None, q_auto: bool = Fa
 if __name__ == "__main__":
     # execute only if run as a script
 
-    parser: ArgumentParser = ArgumentParser(description='Compute q-faces and their associated degrees (classical, \
-                                                        maximal, maximal_u, weighted, weighted_u)')
+    db_datasets = get_datasets_names_from_db()
+
+    parser: ArgumentParser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter, description=f'''Compute q-faces and their associated degrees (classical, maximal, maximal_u, weighted, weighted_u).
+
+Available datasets:
+{str(db_datasets)[1:-1].replace(', ', ',')}''')
     parser.add_argument("-d",
                         "--datasets",
-                        help="a dataset or a comma-separated list of datasets to load")
+                        help=f"a dataset or a comma-separated list of datasets to load. Available datasets: {db_datasets}")
     q_group = parser.add_mutually_exclusive_group()
     q_group.add_argument("-q",
                          help="compute q-faces, with Q a comma separated list of q (int)")

@@ -23,13 +23,14 @@ BEGIN
     maximal_degree := maximal_degree_u;
     weighted_maximal_degree := maximal_degree_u;
 
-    classical_degree := null;
+    -- node-to_1-faces, which is computed with q-faces degrees is already the classical degree
+    -- classical_degree := null;
 
-    FOR nodes_arr IN (SELECT node_ids FROM "{0}".facets WHERE id = ANY (upper_facets))
-        LOOP
-            neighbour_nodes = neighbour_nodes | nodes_arr.node_ids;
-        END LOOP;
-    classical_degree := icount(neighbour_nodes) - 1;
+    -- FOR nodes_arr IN (SELECT node_ids FROM "{0}".facets WHERE id = ANY (upper_facets))
+    --     LOOP
+    --         neighbour_nodes = neighbour_nodes | nodes_arr.node_ids;
+    --     END LOOP;
+    -- classical_degree := icount(neighbour_nodes) - 1;
 END;
 $$
 LANGUAGE plpgsql

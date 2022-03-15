@@ -1,3 +1,5 @@
 {
-  "python.pythonPath": "/data/Apps/miniconda3/envs/simplicial/bin/python"
+  "python.pythonPath": "/data/Apps/miniconda3/envs/simplicial/bin/python",
+  "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true
 }
