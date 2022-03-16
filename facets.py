@@ -59,11 +59,11 @@ def process_dataset(dataset: str, reset=False) -> None:
         start = time()
         db.execute_queries_from_path('./sql/facets/03_dnodes.sql', [dataset])
         end = time()
-        logger.info(f'{dataset}: Done in {(end - start):.1f} seconds')
+        logger.info('%s: Done in %s seconds', dataset, f'{(end - start):.1f}')
         db.vacuum(f'ANALYSE "{dataset}".nodes')
         db.vacuum(f'ANALYSE "{dataset}".dnodes')
     else:
-        logger.info(f'{dataset}: Already (previously) processed. Doing nothing.')
+        logger.info('%s: Already (previously) processed. Doing nothing.', dataset)
 
     # logger.info(f'{dataset}: Computing facets-nodes bidirectional relationship...')
     # if not db.execute_queries(f'''SELECT to_regclass('"{dataset}".facets_nodes');''', return_rows=True)[0][0]:
@@ -88,10 +88,11 @@ def main(datasets: List[str] = None, reset: bool = False):
 
     for dataset in datasets:
         try:
-            logger.info(f"Processing simplices for dataset {dataset}")
+            logger.info("Processing simplices for dataset %s", dataset)
             process_dataset(dataset, reset)
         except ValueError as error:
             logger.error(error)
+    db.vacuum("FULL")
     db.disconnect()
     logger.info("All done!")
 

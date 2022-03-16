@@ -2,26 +2,27 @@ import argparse
 import os
 import pickle
 import sys
-
-from psycopg2.extras import execute_values
-
-sys.path.append('../')
 from configparser import ConfigParser
 from typing import Dict, List, Set, Tuple
-from logger import logger
 
+sys.path.append('../')
+from logger import logger
+from psycopg2.extras import execute_values
 from tqdm import tqdm
 
 from arxiv.arxiv_classes.arxiv import Author, Paper
 from arxiv.arxiv_db import arxiv_db
 
+
 config = ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
-_arxiv_papers: List[Tuple[str, List[str], List[str]]] = []  # (title, authors, dates)
+# (title, authors, dates)
+_arxiv_papers: List[Tuple[str, List[str], List[str]]] = []
 _papers: Dict[str, Paper] = {}
 _authors: Dict[str, Author] = {}
-_discarded_papers: List[Tuple[str, List[str], List[str], str]] = []  # (title, authors, dates, reason)
+# (title, authors, dates, reason)
+_discarded_papers: List[Tuple[str, List[str], List[str], str]] = []
 _discarded_authors: Set[Tuple[str, str]] = set()
 
 
@@ -42,9 +43,11 @@ def _are_equal_lists(list1: List, list2: List):
 
 
 def init_db_schema(dataset: str) -> None:
-    logger.info(f'{dataset:} Initializing schema {dataset} on db "{config["Database"]["dbname"]}"')
+    logger.info(
+        f'{dataset}: Initializing schema {dataset} on db "{config["Database"]["dbname"]}"')
     arxiv_db.create_schema(dataset)
-    arxiv_db.execute_queries_from_path(os.path.abspath('./sql/00_prepare_arxiv_db.sql'), [dataset])
+    arxiv_db.execute_queries_from_path(os.path.abspath(
+        './sql/00_prepare_arxiv_db.sql'), [dataset])
 
 
 def load_arxiv_files(basedir, dir_files, dataset):
@@ -52,15 +55,19 @@ def load_arxiv_files(basedir, dir_files, dataset):
     total = int(__parts[1][:-7])
 
     # Add the papers
-    with tqdm(total=total, desc=f"{dataset}: Processing papers/authors from harvested ArXiv files") as pbar:
+    logger.info(
+        "%s: Processing papers/authors from harvested ArXiv files", dataset)
+    with tqdm(total=total, ncols=80) as pbar:
         for filename in dir_files:
             with open(os.path.join(basedir, filename), 'rb') as file:
                 records = pickle.load(file)
                 for record in records['record']:
                     if 'metadata' in record:
                         title = record['metadata']['oai_dc:dc']['dc:title']
-                        record_authors = _to_list(record['metadata']['oai_dc:dc']['dc:creator'])
-                        dates = _to_list(record['metadata']['oai_dc:dc']['dc:date'])
+                        record_authors = _to_list(
+                            record['metadata']['oai_dc:dc']['dc:creator'])
+                        dates = _to_list(
+                            record['metadata']['oai_dc:dc']['dc:date'])
                         _arxiv_papers.append((title, record_authors, dates))
                         paper_authors: Set[Author] = set()
                         for record_author in record_authors:
@@ -70,7 +77,8 @@ def load_arxiv_files(basedir, dir_files, dataset):
                             except ValueError:
                                 _discarded_authors.add((record_author, title))
                         if len(paper_authors) > 0:
-                            paper = Paper(title, [author.id for author in paper_authors], dates)
+                            paper = Paper(
+                                title, [author.id for author in paper_authors], dates)
                             repeated = False
                             if paper.id in _papers:
                                 if not _are_equal_lists(paper.author_ids, _papers[paper.id].author_ids):
@@ -84,10 +92,13 @@ def load_arxiv_files(basedir, dir_files, dataset):
                                 else:
                                     repeated = True
                                     if not _are_equal_lists(paper.dates, _papers[paper.id].dates):
-                                        _papers[paper.id].dates.extend(paper.dates)
-                                        _papers[paper.id].dates = sorted(set(_papers[paper.id].dates))
+                                        _papers[paper.id].dates.extend(
+                                            paper.dates)
+                                        _papers[paper.id].dates = sorted(
+                                            set(_papers[paper.id].dates))
                                     else:
-                                        _discarded_papers.append((title, record_authors, dates, "repeated papers"))
+                                        _discarded_papers.append(
+                                            (title, record_authors, dates, "repeated papers"))
                             else:
                                 _papers[paper.id] = paper
 
@@ -96,9 +107,11 @@ def load_arxiv_files(basedir, dir_files, dataset):
                                     if author.id not in _authors:
                                         _authors[author.id] = author
                                     _authors[author.id].paper_ids.add(paper.id)
-                                    _authors[author.id].alt_names.update(author.alt_names)
+                                    _authors[author.id].alt_names.update(
+                                        author.alt_names)
                         else:
-                            _discarded_papers.append((title, record_authors, dates, 'no valid authors'))
+                            _discarded_papers.append(
+                                (title, record_authors, dates, 'no valid authors'))
                     pbar.update(1)
 
 
@@ -110,19 +123,22 @@ def insert_papers_authors_in_db(dataset: str, batch_size: int = 1000):
     j: int = 0
     query_values: List = []
     total = len(_arxiv_papers)
-    with tqdm(total=total, desc=f"{dataset}: Inserting original (non-filtered) arXiv papers into DB") as pbar:
+    logger.info('%s: Inserting original (non-filtered) arXiv papers into DB', dataset)
+    with tqdm(total=total, ncols=80) as pbar:
         for title, paper_authors, dates in _arxiv_papers:
             dates_str = ",".join(['"{}"'.format(date) for date in dates])
             dates_str = '{' + dates_str + '}'
             query_values.append((title, paper_authors, dates_str))
             j += 1
             if j == batch_size:
-                execute_values(cursor, insert_query, query_values, page_size=page_size)
+                execute_values(cursor, insert_query,
+                               query_values, page_size=page_size)
                 j = 0
                 query_values.clear()
                 pbar.update(batch_size)
         if j > 0:
-            execute_values(cursor, insert_query, query_values, page_size=page_size)
+            execute_values(cursor, insert_query,
+                           query_values, page_size=page_size)
             pbar.update(j)
 
     insert_query: str = f'INSERT INTO "{dataset}".authors (name, alt_names) VALUES %s'
@@ -130,17 +146,20 @@ def insert_papers_authors_in_db(dataset: str, batch_size: int = 1000):
     j: int = 0
     query_values: List[Tuple[str, List[str]]] = []
     total = len(_authors)
-    with tqdm(total=total, desc=f"{dataset}: Inserting authors (name normalised) into DB") as pbar:
+    logger.info('%s: Inserting authors (name normalised) into DB', dataset)
+    with tqdm(total=total, ncols=80) as pbar:
         for author in _authors.values():
             query_values.append((author.id, sorted(author.alt_names)))
             j += 1
             if j == batch_size:
-                execute_values(cursor, insert_query, query_values, page_size=page_size)
+                execute_values(cursor, insert_query,
+                               query_values, page_size=page_size)
                 j = 0
                 query_values.clear()
                 pbar.update(batch_size)
         if j > 0:
-            execute_values(cursor, insert_query, query_values, page_size=page_size)
+            execute_values(cursor, insert_query,
+                           query_values, page_size=page_size)
             pbar.update(j)
 
     if len(_discarded_authors) > 0:
@@ -149,17 +168,20 @@ def insert_papers_authors_in_db(dataset: str, batch_size: int = 1000):
         j: int = 0
         query_values: List[Tuple[str, str]] = []
         total = len(_discarded_authors)
-        with tqdm(total=total, desc=f"{dataset}: Inserting discarded authors into DB") as pbar:
+        logger.info('%s: Inserting discarded authors into DB', dataset)
+        with tqdm(total=total, ncols=80) as pbar:
             for author in _discarded_authors:
                 query_values.append((author[0], author[1]))
                 j += 1
                 if j == batch_size:
-                    execute_values(cursor, insert_query, query_values, page_size=page_size)
+                    execute_values(cursor, insert_query,
+                                   query_values, page_size=page_size)
                     j = 0
                     query_values.clear()
                     pbar.update(batch_size)
             if j > 0:
-                execute_values(cursor, insert_query, query_values, page_size=page_size)
+                execute_values(cursor, insert_query,
+                               query_values, page_size=page_size)
                 pbar.update(j)
 
     insert_query: str = f'INSERT INTO "{dataset}".papers (title, authors, dates) VALUES %s'
@@ -167,19 +189,22 @@ def insert_papers_authors_in_db(dataset: str, batch_size: int = 1000):
     j: int = 0
     query_values: List[Tuple[str, List[str], str]] = []
     total = len(_papers)
-    with tqdm(total=total, desc=f"{dataset}: Inserting filtered papers into DB") as pbar:
+    logger.info('%s: Inserting filtered papers into DB', dataset)
+    with tqdm(total=total, ncols=80) as pbar:
         for paper in _papers.values():
             dates_str = ",".join(['"{}"'.format(date) for date in paper.dates])
             dates_str = '{' + dates_str + '}'
             query_values.append((paper.id, paper.author_ids, dates_str))
             j += 1
             if j == batch_size:
-                execute_values(cursor, insert_query, query_values, page_size=page_size)
+                execute_values(cursor, insert_query,
+                               query_values, page_size=page_size)
                 j = 0
                 query_values.clear()
                 pbar.update(batch_size)
         if j > 0:
-            execute_values(cursor, insert_query, query_values, page_size=page_size)
+            execute_values(cursor, insert_query,
+                           query_values, page_size=page_size)
             pbar.update(j)
 
     if len(_discarded_papers):
@@ -189,23 +214,29 @@ def insert_papers_authors_in_db(dataset: str, batch_size: int = 1000):
         j: int = 0
         query_values: List[Tuple[str, List[str], str, str]] = []
         total = len(_discarded_papers)
-        with tqdm(total=total, desc=f"{dataset}: Inserting discarded papers into DB") as pbar:
+        logger.info('%s: Inserting discarded papers into DB', dataset)
+        with tqdm(total=total, ncols=80) as pbar:
             for paper in _discarded_papers:
-                dates_str = ",".join(['"{}"'.format(date) for date in paper[2]])
+                dates_str = ",".join(['"{}"'.format(date)
+                                     for date in paper[2]])
                 dates_str = '{' + dates_str + '}'
                 query_values.append((paper[0], paper[1], dates_str, paper[3]))
                 j += 1
                 if j == batch_size:
-                    execute_values(cursor, insert_query, query_values, page_size=page_size)
+                    execute_values(cursor, insert_query,
+                                   query_values, page_size=page_size)
                     j = 0
                     query_values.clear()
                     pbar.update(batch_size)
             if j > 0:
-                execute_values(cursor, insert_query, query_values, page_size=page_size)
+                execute_values(cursor, insert_query,
+                               query_values, page_size=page_size)
                 pbar.update(j)
 
-    logger.info(f'{dataset}: Creating papers-authors relationship bidirectional table...')
-    arxiv_db.execute_queries_from_path(os.path.abspath('./sql/01_papers_authors.sql'), [dataset])
+    logger.info(
+        f'{dataset}: Creating papers-authors relationship bidirectional table...')
+    arxiv_db.execute_queries_from_path(os.path.abspath(
+        './sql/01_papers_authors.sql'), [dataset])
 
     logger.info(f"{dataset}: Completed!")
 
@@ -216,7 +247,8 @@ def insert_papers_authors_in_db(dataset: str, batch_size: int = 1000):
 
     if len(_discarded_authors) > 0:
         discarded_authors_set = set()
-        [discarded_authors_set.add(author) for author, paper in _discarded_authors]
+        [discarded_authors_set.add(author)
+         for author, paper in _discarded_authors]
         logger.warning(f'{len(discarded_authors_set)} author/s has/have been discarded:' +
                        f'\n{discarded_authors_set}\n' +
                        f'See table {dataset}.discarded_authors on the {config["Database"]["dbname"]}' +
@@ -225,7 +257,8 @@ def insert_papers_authors_in_db(dataset: str, batch_size: int = 1000):
 
 def create_simplicies(dataset: str) -> None:
     logger.info(f'{dataset}: Creating simplices...')
-    arxiv_db.execute_queries_from_path(os.path.abspath('./sql/02_simplices.sql'), [dataset])
+    arxiv_db.execute_queries_from_path(
+        os.path.abspath('./sql/02_simplices.sql'), [dataset])
     return None
 
 
@@ -258,13 +291,15 @@ def main(dsets=None):
     arxiv_db.init(config['Database'], drop_db_first=True)
     arxiv_db.connect()
     if not dsets:
-        dsets = [os.path.split(x[0])[-1] for x in os.walk(config['ArXiv']['basedir'])][1:]
+        dsets = [os.path.split(x[0])[-1]
+                 for x in os.walk(config['ArXiv']['basedir'])][1:]
 
     for dataset in dsets:
         try:
             load_dataset(dataset)
         except ValueError as error:
             logger.error(error)
+    arxiv_db.vacuum("FULL")
     arxiv_db.disconnect()
     logger.info("All done!")
 
@@ -272,16 +307,16 @@ def main(dsets=None):
 if __name__ == "__main__":
     # execute only if run as a script
 
-    parser: argparse.ArgumentParser = argparse.ArgumentParser(description='Load arXiv datasets into PostgreSQL')
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(
+        description='Load arXiv datasets into PostgreSQL')
     parser.add_argument("-d",
                         "--datasets",
                         help="a dataset or a comma-separated list of datasets to load")
 
     args = parser.parse_args()
 
+    datasets = None
     if args.datasets:
         datasets = args.datasets.split(',')
-    else:
-        datasets = None
 
     main(datasets)

@@ -7,6 +7,5 @@ CREATE UNLOGGED TABLE "{0}".q0_faces
     maximal_degree_u        int,
     maximal_degree          int,
     weighted_maximal_degree int,
-    classical_degree        int,
     node_to_qfaces_degree   int[] -- is an array where the index is q
 );

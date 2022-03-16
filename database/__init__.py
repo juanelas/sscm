@@ -1,15 +1,16 @@
+"""Some common function regarding the database"""
 import os
 import sys
 from configparser import ConfigParser
+from database.database import Database
 
 sys.path.append('../')
-from database.database import Database
 
 config = ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), '../config.ini'))
 
-
 def get_datasets_names_from_db(tablename_to_check: str = 'simplices'):
+    """Returns a list with the datasets in the DB"""
     db = Database()
     db.init(config['SimplicialDB'])
     sql = f'''

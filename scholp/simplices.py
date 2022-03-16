@@ -66,7 +66,8 @@ class ScholpSimplices:
 def get_dataset_names():
     dataset_dirs = glob(os.path.join(config['Scholp']['basedir'], "*", ""))
     datasets = []
-    [datasets.append(os.path.basename(dataset_dir[0:-1])) for dataset_dir in dataset_dirs]
+    for dataset_dir in dataset_dirs:
+        datasets.append(os.path.basename(dataset_dir[0:-1]))
     return sorted(datasets)
 
 
@@ -85,7 +86,7 @@ def load_dataset_onto_db(dataset: str, batch_size: int = 500) -> None:
     total = len(raw_simplices)
     
     print(f"{dataset}: Inserting simplices from dataset")
-    with tqdm(total=total) as pbar:
+    with tqdm(total=total, ncols=80) as pbar:
         for simplex in raw_simplices:
             query_values.append((simplex,))
             j += 1
@@ -111,6 +112,7 @@ def main(datasets=None):
             # print(dset)
         except ValueError as error:
             logger.error(error)
+    scholp_db.vacuum("FULL")
     scholp_db.disconnect()
     logger.info("All done!")
 
@@ -125,9 +127,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    dsets = None
     if args.datasets:
         dsets = args.datasets.split(',')
-    else:
-        dsets = None
 
     main(dsets)

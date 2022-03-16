@@ -8,19 +8,12 @@ import numpy as np
 
 from database import get_datasets_names_from_db
 from database.instance import db
+from database.list_to_pg_array import list_to_pg_arr
 from directories import stats_dir
 from logger import logger
 
 config = ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
-
-
-def list_to_postgresql_arr(python_list: List, cast: str = None) -> str:
-    """Converts a python list to a postgresql array string"""
-    pg_array: str = str(python_list).replace('[', '{').replace(']', '}')
-    if cast:
-        pg_array += f'::{cast}'
-    return pg_array
 
 
 def datasets_stats(datasets=None):
@@ -108,7 +101,7 @@ def degrees_sql(dataset: str, q: int, degrees: List[str], percentiles: List[floa
     # {0} - dataset, {1} q, {2} degrees_columns
     stats_sql: str = '''SELECT '{0}' AS dataset, {1} AS q {2} FROM "{0}".q{1}_faces'''
 
-    percentiles_str: str = list_to_postgresql_arr(percentiles)
+    percentiles_str: str = list_to_pg_arr(percentiles)
 
     degrees_columns_sql: str = ''
     for degree in degrees:
@@ -140,11 +133,9 @@ def get_dataset_degrees(dataset: str) -> Dict:
         ['maximal_degree_u', 'maximal upper'],
         ['weighted_maximal_degree', 'weighted maximal']
     ]
-    q0_extra_degrees: List[List[str]] = [['classical_degree', 'classical']]
+    q0_extra_degrees: List[List[str]] = []
     for q in qs:
-        if q > 0:
-            q0_extra_degrees.append(
-                [f'node_to_qfaces_degree[{q}]', f'node to {q}-faces'])
+        q0_extra_degrees.append([f'node_to_qfaces_degree[{q}]', f'node to {q}-faces'])
 
     return {"q_degrees": q_degrees, "q0_extra_degrees": q0_extra_degrees}
 
@@ -176,8 +167,7 @@ def degrees_stats(percentiles: str = '{.5,.9,.99}', reset=False):
             if q == 0:
                 for degree in degrees["q0_extra_degrees"]:
                     if "[" not in degree[0]:
-                        queries.append(index_template.format(
-                            dataset, qfaces_tablename, degree[0]))
+                        queries.append(index_template.format(dataset, qfaces_tablename, degree[0]))
 
             db.execute_queries(queries)
 

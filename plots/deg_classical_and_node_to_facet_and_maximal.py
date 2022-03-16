@@ -1,43 +1,42 @@
 """Plots figures wrt statistics of the different degrees"""
 import os
+import re
 from glob import glob
 from typing import List
 
+import pandas as pd
 from directories import stats_dir
 from logger import logger
 
 from plots import csvfiles_to_df, plot
 
 
-def classical_and_node_to_facets_and_maximal_degree(dataset: str):
+def classical_and_node_to_facets_and_maximal_degree(dataset: str, df_datasets: pd.DataFrame):
     """Statistics of the different degrees of a given dataset"""
 
     columnnames = []
-    csv_file_names = glob(
-        f'{stats_dir}/{dataset}_q0_faces_classical_degree_dist.csv')
+
+    # median of q
+    q_m = int(df_datasets['nodes per facet: median']) - 1
+
+    # most frequent value of q
+    q_p = int(df_datasets['nodes per facet: most frequent value']) - 1
+
+    csv_file_names = [
+        f'{stats_dir}/{dataset}_q0_faces_node_to_qfaces_degree[1]_dist.csv']
     columnnames.append('classical node deg.: $k$')
+
     i: int = 0
-    q_p = None  # most probable q
-    q_m = None  # median q
+    # q_p = None  # most probable q
+    # q_m = None  # median q
     for filename in sorted(glob(f'{stats_dir}/{dataset}_q*_faces_maximal_degree_u_dist.csv')):
-        aux: List = os.path.splitext(os.path.basename(filename))[
-            0].split('_')
-        q = int(aux[1][1])
-        # columnnames.append(f'maximal simplicial upper degree: {q}-simplices')
+        q = int(re.match(r'[^q]*q(?P<q>\d+)',
+                os.path.basename(filename)).group('q'))
+
+        csv_file_names.append(filename)
         if q == 0:
             columnnames.append('node-to-facets deg.:  $k^F$')
         else:
-            if not q_m:
-                q_m = q
-                q_p = q
-            else:
-                if q >= q_m:
-                    q_p = q
-                else:
-                    q_p = q_m
-                    q_m = q
-
-            csv_file_names.append(filename)
             columnnames.append(
                 f'max. up. simp. deg. ${q}$-simplices:  $k_U^*({q})$')
 
@@ -51,17 +50,17 @@ def classical_and_node_to_facets_and_maximal_degree(dataset: str):
         aux: List = os.path.splitext(os.path.basename(filename))[
             0].split('_')
         q = int(aux[1][1])
-        csv_file_names.append(filename)
-        # columnnames.append(f'maximal simplicial degree: {aux[1][1]}-simplices')
+
         if q > 0:
             columnnames.append(
                 f'max. simp. deg. ${q}$-simplices:  $k^*({q})$')
+            csv_file_names.append(filename)
 
     df_degrees_hist = csvfiles_to_df(csv_filenames=csv_file_names, normalise=True,
                                      column_names=columnnames)
 
     logger.info(
-        "%s: Generating degrees distributions (classical node+ node to facet + maximal simplicial): loglog",
+        "%s: Generating degrees distributions (classical node + node to facet + maximal simplicial): loglog",
         dataset)
     plot(
         df_degrees_hist,

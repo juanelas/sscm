@@ -2,14 +2,14 @@ CREATE OR REPLACE FUNCTION "{0}".q0_faces_degrees(face_node_ids int[],
                                                   OUT maximal_degree_u int,
                                                   OUT maximal_degree int,
                                                   OUT weighted_maximal_degree int,
-                                                  OUT classical_degree int,
+                                                --   OUT classical_degree int,
                                                   OUT upper_facets int[])
 AS
 $$
 DECLARE
     no_nodes        int;
-    nodes_arr       RECORD;
-    neighbour_nodes int[] := '{{}}'::int[];
+    -- nodes_arr       RECORD;
+    -- neighbour_nodes int[] := '{{}}'::int[];
 BEGIN
     no_nodes := icount(face_node_ids);
     IF no_nodes != 1 THEN

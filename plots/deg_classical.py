@@ -1,8 +1,8 @@
 """Plots figures wrt statistics of the different degrees"""
-from glob import glob
 
 from directories import stats_dir
 from logger import logger
+
 from plots import csvfiles_to_df, plot
 
 
@@ -10,7 +10,7 @@ def classical_degree(dataset: str):
     """Statistics of the different degrees of a given dataset"""
 
     columnnames = []
-    csv_file_names = glob(f'{stats_dir}/{dataset}_q0_faces_classical_degree_dist.csv')
+    csv_file_names = [f'{stats_dir}/{dataset}_q0_faces_node_to_qfaces_degree[1]_dist.csv']
     columnnames.append('classical node degree')
     df_degrees_hist = csvfiles_to_df(
         csv_filenames=csv_file_names, normalise=True, column_names=columnnames)

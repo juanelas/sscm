@@ -10,31 +10,28 @@ from logger import logger
 from plots import csvfiles_to_df, plot
 
 
-def classical_and_node_to_qfaces_degree(dataset: str, df_datasets: pd.DataFrame):
+def classical_and_node_to_qfaces_degree(dataset: str, df_degrees: pd.DataFrame):
     """Statistics of the different degrees of a given dataset"""
 
     columnnames = []
-
-    csv_file_names = glob(
-        f'{stats_dir}/{dataset}_q0_faces_classical_degree_dist.csv')
-    columnnames.append('classical node deg.: $k^1$')
+    csv_file_names = []
 
     vlines = []
     vlines_value_name = {}  # Value is a 10 decimal precission string of the value
 
     for filename in sorted(glob(f'{stats_dir}/{dataset}_q0_faces_node_to_qfaces_degree*.csv')):
-        q = int(re.match(r'.*(?P<q>\d)', os.path.basename(filename)).group('q'))
-        if q > 1:
-            csv_file_names.append(filename)
-            if q == 2:
-                columnnames.append(f'node-to-triangles deg.:  $k^{q}$')
-            elif q == 3:
-                columnnames.append(f'node-to-tetrahedra deg.:  $k^{q}$')
-            else:
-                columnnames.append(f'node-to-{q}-faces deg.:  $k^{q}$')
+        q = int(re.match(r'[^[]+\[(?P<q>\d+)', os.path.basename(filename)).group('q'))
+        csv_file_names.append(filename)
+        if q == 1:
+            columnnames.append('classical node deg.: $k^1$')
+        elif q == 2:
+            columnnames.append(f'node-to-triangles deg.:  $k^{q}$')
+        elif q == 3:
+            columnnames.append(f'node-to-tetrahedra deg.:  $k^{q}$')
+        else:
+            columnnames.append(f'node-to-{q}-faces deg.:  $k^{q}$')
 
-        avg = df_datasets[[
-            f'node_to_qfaces_degree[{q}]: avg']].loc[df_datasets['q'] == 0].loc[dataset][0]
+        avg = df_degrees[f'node_to_qfaces_degree[{q}]: avg'].loc[df_degrees['q'] == 0][0]
         value = f'{avg:.10f}'.rstrip('0').rstrip(
             '.') if '.' in f'{avg:.10f}' else f'{avg:.10f}'
         if value in vlines_value_name:
@@ -42,25 +39,25 @@ def classical_and_node_to_qfaces_degree(dataset: str, df_datasets: pd.DataFrame)
         else:
             vlines_value_name[value] = f'$\\langle k^{q} \\rangle = '
 
-        median = int(df_datasets[[f'node_to_qfaces_degree[{q}] percentiles ' +
-                                  '{.5,.75,.9,.99,.999}']
-                                 ].loc[df_datasets['q'] == 0]
-                     .loc[dataset][0][1:-1].split(',')[0])
+        median = int(df_degrees[f'node_to_qfaces_degree[{q}] percentiles ' +
+                                '{.5,.75,.9,.99,.999}'
+                                ].loc[df_degrees['q'] == 0][0][1:-1].split(',')[0])
         value = f'{median:.10f}'.rstrip('0').rstrip(
             '.') if '.' in f'{median:.10f}' else f'{median:.10f}'
         if value in vlines_value_name:
-            vlines_value_name[value] = vlines_value_name[value] + f' \\overline{{k^{q}}} = '
+            vlines_value_name[value] = vlines_value_name[value] + \
+                f' \\overline{{k^{q}}} = '
         else:
             vlines_value_name[value] = f'$\\overline{{k^{q}}} = '
 
-    for value in vlines_value_name:
-        vlines.append([float(value), vlines_value_name[value] +
+    for value, label in vlines_value_name.items():
+        vlines.append([float(value), label +
                        (f'{float(value):.2f}'.rstrip('0').rstrip(
                            '.') if '.' in f'{float(value):.10f}' else f'{float(value):.10f}')
                        + '$'])
 
-    def sorter(e):
-        return e[0]
+    def sorter(item):
+        return item[0]
 
     vlines.sort(key=sorter)
 
