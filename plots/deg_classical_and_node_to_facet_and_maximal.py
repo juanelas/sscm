@@ -2,7 +2,6 @@
 import os
 import re
 from glob import glob
-from typing import List
 
 import pandas as pd
 from directories import stats_dir
@@ -30,7 +29,7 @@ def classical_and_node_to_facets_and_maximal_degree(dataset: str, df_datasets: p
     # q_p = None  # most probable q
     # q_m = None  # median q
     for filename in sorted(glob(f'{stats_dir}/{dataset}_q*_faces_maximal_degree_u_dist.csv')):
-        q = int(re.match(r'[^q]*q(?P<q>\d+)',
+        q = int(re.match(r'.*_q(?P<q>\d+)_faces',
                 os.path.basename(filename)).group('q'))
 
         csv_file_names.append(filename)
@@ -47,9 +46,8 @@ def classical_and_node_to_facets_and_maximal_degree(dataset: str, df_datasets: p
         title += f'$q_m = {q_m}$, $q_p = {q_p}$'
 
     for filename in sorted(glob(f'{stats_dir}/{dataset}_q*_faces_maximal_degree_dist.csv')):
-        aux: List = os.path.splitext(os.path.basename(filename))[
-            0].split('_')
-        q = int(aux[1][1])
+        q = int(re.match(r'.*_q(?P<q>\d+)_faces',
+                os.path.basename(filename)).group('q'))
 
         if q > 0:
             columnnames.append(

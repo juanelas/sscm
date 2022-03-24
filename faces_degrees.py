@@ -36,8 +36,10 @@ def create_q_faces(dataset, q: int, reset=False, only_distinct_faces=False, batc
 
     logger.info("%s: Computing %d-faces...", dataset, q)
 
-    if not reset and db.execute_queries(f'''SELECT to_regclass('"{dataset}".q{q}_faces');''', return_rows=True)[0][0] and \
-            len(db.execute_queries(f'''SELECT maximal_degree FROM "{dataset}".q{q}_faces LIMIT 1;''', return_rows=True)) > 0:
+    if not reset and db.execute_queries(f'''SELECT to_regclass('"{dataset}".q{q}_faces');''',
+                                        return_rows=True)[0][0] and \
+        len(db.execute_queries(f'''SELECT maximal_degree FROM "{dataset}".q{q}_faces LIMIT 1;''',
+                                   return_rows=True)) > 0:
         logger.info(
             '%s: Already (previously) processed. Doing nothing.', dataset)
         return
@@ -57,7 +59,8 @@ def create_q_faces(dataset, q: int, reset=False, only_distinct_faces=False, batc
         f'SELECT * FROM "{dataset}".facets', dict_cursor=True, return_rows=True)
     db.connect()
     cursor = db.connection.cursor()
-    insert_query = f'INSERT INTO "{dataset}".q{q}_faces (face, weight) VALUES %s ON CONFLICT DO NOTHING'
+    insert_query = \
+        f'INSERT INTO "{dataset}".q{q}_faces (face, weight) VALUES %s ON CONFLICT DO NOTHING'
 
     q_key: str = 'dq' if only_distinct_faces else 'q'
     node_ids_key: str = 'dnode_ids' if only_distinct_faces else 'node_ids'
@@ -156,10 +159,6 @@ def main(datasets: List[str] = None, q_list: List[int] = None, q_auto: bool = Fa
         prepare_dataset(dataset)
         if q_auto:
             median: int = get_facets_median_q(dataset)
-            if median > 6:
-                logger.info(
-                    'computed median of q is too big: %d! Assuming median=6', median)
-                median = 6
             most_frequent_q: int = get_facets_most_frequent_q(dataset)
             q_list = sorted({0, 1, most_frequent_q, median})
             logger.info(

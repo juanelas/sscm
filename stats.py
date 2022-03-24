@@ -76,9 +76,9 @@ def export_degrees_to_csv(dataset: str, q: int):
             FROM "{dataset}".{table_name}
             GROUP BY {column_name}
             ORDER BY {column_name}'''
-        row = db.execute_queries(
+        rows = db.execute_queries(
             f'SELECT {column_name} FROM "{dataset}".{table_name} LIMIT 1', return_rows=True)
-        if len(row) > 0 and row[0][0] is not None:
+        if len(rows) > 0 and rows[0][0] is not None:
             db.execute_queries(f"COPY ({query}) TO '" +
                                os.path.join(stats_dir,
                                             f"{dataset}_{table_name}_{column_name}_dist.csv") +
@@ -91,12 +91,12 @@ def degrees_sql(dataset: str, q: int, degrees: List[str], percentiles: List[floa
 
     # {0} - degree name in db, {1} human readable name of the degree, {2} percentiles
     degree_columns_sql: str = ''',
-       min({0})::int                                               AS "{1}: min",
-       max({0})::int                                               AS "{1}: max",
-       avg({0})::float                                             AS "{1}: avg",
-       mode() WITHIN GROUP (ORDER BY {0})                          AS "{1}: most frequent value",
-       stddev({0})::float                                          AS "{1}: stddev",
-       percentile_disc('{2}'::float[]) WITHIN GROUP (ORDER BY {0}) AS "{1} percentiles {2}"
+       min({0})::int                                                 AS "{1}: min",
+       max({0})::int                                                 AS "{1}: max",
+       avg({0})::float                                               AS "{1}: avg",
+       mode() WITHIN GROUP (ORDER BY {0})                            AS "{1}: most frequent value",
+       stddev({0})::float                                            AS "{1}: stddev",
+       percentile_disc('{2}'::float[]) WITHIN GROUP (ORDER BY {0})   AS "{1} percentiles {2}"
     '''
     # {0} - dataset, {1} q, {2} degrees_columns
     stats_sql: str = '''SELECT '{0}' AS dataset, {1} AS q {2} FROM "{0}".q{1}_faces'''
@@ -174,6 +174,7 @@ def degrees_stats(percentiles: str = '{.5,.9,.99}', reset=False):
             if q == 0:
                 query = degrees_sql(
                     dataset, q, degrees["q_degrees"] + degrees["q0_extra_degrees"], percentiles)
+
             else:
                 query = degrees_sql(
                     dataset, q, degrees["q_degrees"], percentiles)
@@ -184,6 +185,17 @@ def degrees_stats(percentiles: str = '{.5,.9,.99}', reset=False):
 
             with db.connection.cursor() as cursor:
                 if len(rows) > 0:
+                    if q == 0:
+                        for q2 in qs:
+                            columns_query = f"""
+                            ALTER TABLE "degrees_stats" ADD COLUMN IF NOT EXISTS "node_to_qfaces_degree[{q2}]: min" int;
+                            ALTER TABLE "degrees_stats" ADD COLUMN IF NOT EXISTS "node_to_qfaces_degree[{q2}]: max" int;
+                            ALTER TABLE "degrees_stats" ADD COLUMN IF NOT EXISTS "node_to_qfaces_degree[{q2}]: avg" float;
+                            ALTER TABLE "degrees_stats" ADD COLUMN IF NOT EXISTS "node_to_qfaces_degree[{q2}]: most frequent value" int;
+                            ALTER TABLE "degrees_stats" ADD COLUMN IF NOT EXISTS "node_to_qfaces_degree[{q2}]: stddev" float;
+                            ALTER TABLE "degrees_stats" ADD COLUMN IF NOT EXISTS "node_to_qfaces_degree[{q2}] percentiles {list_to_pg_arr(percentiles)}" int[];
+                            """
+                            db.execute_queries(columns_query)
                     if len(db.execute_queries(
                             f"SELECT dataset FROM degrees_stats WHERE dataset = '{dataset}' AND q = {q}",
                             return_rows=True)) > 0:
