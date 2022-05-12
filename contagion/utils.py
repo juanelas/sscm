@@ -1,5 +1,12 @@
+import os
+from glob import glob
+from pathlib import Path
 from typing import Dict, List
+
 import numpy as np
+import pandas as pd
+from directories import (iacopini_json_cliques, ramdom_simplicialcomplex_dir,
+                         stats_dir)
 
 
 def find_cut(rhos_array):
@@ -48,8 +55,8 @@ def parse_results(results):
     k = results[0]['k']
     k_delta = results[0]['k_delta']
     lambdas = list(results[0]['lambdas'])
-    sigma = results[0]['sigma']
-    sigma_delta = results[0]['sigma_delta']
+    sigma = results[0].get('sigma')
+    sigma_delta = results[0].get('sigma_delta')
     rho0s_per_lambda_delta = results[0]['rho0s_per_lambda_delta']
     mu = results[0]['mu']
 
@@ -146,7 +153,8 @@ def __init_stationary_rhos(results):
         for lambda_delta, rho_0s in iteration_result['stationary_rhos'].items():
             for rho_0, lambdas in rho_0s.items():
                 for lambda1, iteration_stationary_rho in lambdas.items():
-                    stationary_rhos[lambda_delta][rho_0][lambda1].append(iteration_stationary_rho)
+                    stationary_rhos[lambda_delta][rho_0][lambda1].append(
+                        iteration_stationary_rho)
 
     return stationary_rhos
 
@@ -169,3 +177,24 @@ def __init_array(results: List, default_value):
                         array[lambda_delta][rho_0][lambda1] = default_value
 
     return array
+
+
+def get_random_simplicial_complexes():
+    def filename(filepath):
+        return Path(filepath).stem
+
+    return list(map(filename, glob(os.path.join(ramdom_simplicialcomplex_dir, '*.pickle'))))
+
+
+def get_simplicialbros_datasets():
+    df_datasets_stats = pd.read_csv(
+        glob(f'{stats_dir}/datasets_stats.csv')[0], sep=';')
+    df_datasets_stats = df_datasets_stats.set_index('dataset')
+    return df_datasets_stats.index
+
+
+def get_iacopini_cliques():
+    def dataset(filepath):
+        return Path(filepath).stem.split('_')[-1]
+
+    return list(set(map(dataset, glob(os.path.join(iacopini_json_cliques, '*.json')))))

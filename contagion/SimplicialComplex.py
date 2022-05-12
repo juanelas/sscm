@@ -14,8 +14,8 @@ class SimplicialComplex:
     nodes: List[int]
     edges: List[Tuple[int, int]]
     triangles: List[Tuple[int, int, int]]
-    _k: float
-    _k_delta: float
+    k: float
+    k_delta: float
     _avg_k: float
     _avg_k_delta: float
     _node_neighbours: Dict[int, Set[int]]
@@ -55,18 +55,18 @@ class SimplicialComplex:
         return self._node_neighbours
 
     @property
-    def N(self):
+    def N(self) -> int:
         return len(self.nodes)
 
     @property
-    def avg_k(self):
+    def avg_k(self) -> float:
         if self._avg_k is None:
             self._avg_k = 1.*sum([len(v)
                                  for v in self.node_neighbours.values()])/self.N
         return self._avg_k
 
     @property
-    def avg_k_delta(self):
+    def avg_k_delta(self) -> float:
         if self._avg_k_delta is None:
             self._avg_k_delta = 3.*len(self.triangles)/self.N
         return self._avg_k_delta
@@ -178,15 +178,17 @@ def from_random_sc_file(filename):
     return from_pickle_file(filepath)
 
 
-def from_iacopini_cliques(dataset, n_minutes=5, thr=.8):
+def from_iacopini_cliques(dataset, n_minutes=5, thr=.8, realization=0):
     filepath = os.path.join(
         iacopini_json_cliques, f'random_{str(n_minutes)}_{str(thr)}min_cliques_{dataset}.json')
 
     with open(filepath, 'r', encoding='utf8') as file:
         cliques_list = json.load(file)
-        # considering one realization of the SCM
-        realization_number = random.choice(range(len(cliques_list)))
-        cliques = cliques_list[realization_number]
+        
+        # # considering one realization of the SCM
+        # realization_number = random.choice(range(len(cliques_list)))
+        # cliques = cliques_list[realization_number]
+        cliques = cliques_list[realization]
 
         nodes: List[int] = []
         edges: List[Tuple[int, int]] = []
