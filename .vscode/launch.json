@@ -5,11 +5,40 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: contagion debug",
+      "name": "contagion rsc",
       "type": "python",
       "request": "launch",
       "program": "contagion_model.py",
-      "args": ["-d", "email-Enron"],
+      "args": ["-d", "N500_k20.0_kdelta6.0", "-i", "10"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "contagion iacopini",
+      "type": "python",
+      "request": "launch",
+      "program": "contagion_model.py",
+      "args": ["-d", "InVS15", "-i", "10"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "contagion list datasets",
+      "type": "python",
+      "request": "launch",
+      "program": "contagion_model.py",
+      "args": ["-l"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Create rsc",
+      "type": "python",
+      "request": "launch",
+      "program": "create_random_simplicial_complexes.py",
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true

@@ -20,23 +20,27 @@ stats_dir = os.path.join(_statspath, config['SimplicialDB']['dbname'])
 if not os.path.exists(stats_dir):
     os.makedirs(stats_dir)
 
-_simplicialcomplexpath = config['Contagion']['simplicial_complex_csvs']
-if not os.path.exists(_simplicialcomplexpath):
-    os.makedirs(_simplicialcomplexpath)
-simplicialcomplex_dir = os.path.join(_simplicialcomplexpath, config['SimplicialDB']['dbname'])
-if not os.path.exists(simplicialcomplex_dir):
-    os.makedirs(simplicialcomplex_dir)
+_dbsimplicialcomplexpath = config['Contagion']['db_simplicial_complex_csvs']
+if not os.path.exists(_dbsimplicialcomplexpath):
+    os.makedirs(_dbsimplicialcomplexpath)
+db_simplicialcomplex_dir = os.path.join(_dbsimplicialcomplexpath, config['SimplicialDB']['dbname'])
+if not os.path.exists(db_simplicialcomplex_dir):
+    os.makedirs(db_simplicialcomplex_dir)
 
-_contagion_results_path = config['Contagion']['contagion_results_dir']
-if not os.path.exists(_contagion_results_path):
-    os.makedirs(_contagion_results_path)
-contagion_results_dir = os.path.join(_contagion_results_path, config['SimplicialDB']['dbname'])
+ramdom_simplicialcomplex_dir = config['Contagion']['random_simplicial_complex_dir']
+if not os.path.exists(ramdom_simplicialcomplex_dir):
+    os.makedirs(ramdom_simplicialcomplex_dir)
+
+contagion_results_dir = config['Contagion']['contagion_results_dir']
 if not os.path.exists(contagion_results_dir):
     os.makedirs(contagion_results_dir)
 
 _contagion_figures_path = config['Contagion']['contagion_figures_dir']
 if not os.path.exists(_contagion_figures_path):
     os.makedirs(_contagion_figures_path)
-contagion_figures_dir = os.path.join(_contagion_figures_path, config['SimplicialDB']['dbname'])
+contagion_figures_dir = os.path.join(
+    _contagion_figures_path, config['SimplicialDB']['dbname'])
 if not os.path.exists(contagion_figures_dir):
     os.makedirs(contagion_figures_dir)
+
+iacopini_json_cliques = config['Iacopini']['json_cliques_dir']

@@ -329,7 +329,10 @@ good-names=i,
            ax,
            lw,
            ls,
-           mu
+           mu,
+           N,
+           p1,
+           p2
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted

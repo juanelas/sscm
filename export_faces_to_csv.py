@@ -5,7 +5,7 @@ from typing import List
 
 from database import get_datasets_names_from_db
 from database.instance import db
-from directories import simplicialcomplex_dir
+from directories import db_simplicialcomplex_dir
 from logger import logger
 from stats import get_dataset_qs
 
@@ -16,7 +16,7 @@ def main(datasets: List[str], qs: List[int] = None):
         qs_gen = (q for q in qs if q in db_qs) if qs else (q for q in db_qs)
         for q in qs_gen:
             csvfilename = os.path.join(
-                simplicialcomplex_dir, f"{dataset}_q{q}_faces.csv")
+                db_simplicialcomplex_dir, f"{dataset}_q{q}_faces.csv")
             logger.info('%s: Exporting %d-faces to %s',
                         dataset, q, csvfilename)
             db.execute_queries(
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     db_datasets = get_datasets_names_from_db()
 
     parser: ArgumentParser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
-                                            description=f'''ouput requested dataset qfaces with degrees'stats to a csv file at directoy {simplicialcomplex_dir}. You can edit output dir in config.ini
+                                            description=f'''ouput requested dataset qfaces with degrees'stats to a csv file at directoy {db_simplicialcomplex_dir}. You can edit output dir in config.ini
 
 Available datasets:
 {str(db_datasets)[1:-1].replace(', ', ',')}''')

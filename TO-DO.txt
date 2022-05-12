@@ -1,0 +1,8 @@
+RSC:
+k = 20
+k_delta = 6
+N = 500
+ generadorsimplicial.pdf pág 3 => p1 y p2 para el generador
+ todas las simulaciones con r0=[.2, .8]
+
+Tambiém coger /mnt/data/Telematica/SimplicialNetworkScience/simplagion/Data/Sociopatterns/thr_data_random/random_5_0.8min_cliques_InVS15.json
