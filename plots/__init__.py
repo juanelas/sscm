@@ -8,8 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from directories import figures_dir, stats_dir
-from logger import logger
+from directories import figures_dir
 
 
 def plot(df,

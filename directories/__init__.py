@@ -35,11 +35,7 @@ contagion_results_dir = config['Contagion']['contagion_results_dir']
 if not os.path.exists(contagion_results_dir):
     os.makedirs(contagion_results_dir)
 
-_contagion_figures_path = config['Contagion']['contagion_figures_dir']
-if not os.path.exists(_contagion_figures_path):
-    os.makedirs(_contagion_figures_path)
-contagion_figures_dir = os.path.join(
-    _contagion_figures_path, config['SimplicialDB']['dbname'])
+contagion_figures_dir = config['Contagion']['contagion_figures_dir']
 if not os.path.exists(contagion_figures_dir):
     os.makedirs(contagion_figures_dir)
 

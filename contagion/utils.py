@@ -259,17 +259,19 @@ def available_results():
     for db_datasets in results.values():
         contagion_results_names.extend(db_datasets)
     contagion_results_names.sort()
-    
+
     return results, contagion_results_names
 
 
 def results_from_experiment(experiment_name: str, version: int = 2):
-    results, experiments = available_results()
-    if experiment_name not in experiments:
+    experiments_dict, experiments = available_results()
+    if not experiments_dict:
+        raise Exception('No contagion results. Run contagion model first')
+    elif experiment_name not in experiments:
         raise Exception(f'No contagion results for {experiment_name}')
-    
+
     dataset_results_file = f'{experiment_name}.pickle'
-    for database in results:
+    for database in experiments_dict:
         results_dir = os.path.join(contagion_results_dir, database)
         filepath = os.path.join(results_dir, dataset_results_file)
         try:
@@ -280,12 +282,9 @@ def results_from_experiment(experiment_name: str, version: int = 2):
             pass
 
     if version is 0:
-        rhos, stationary_rhos, k, k_delta, lambdas, sigma, sigma_delta, rho0s_per_lambda_delta, mu = parse_results(
-            results)
+        results = parse_results(results)
     elif version is 1:
-        sigma = sigma_delta = None
-        rhos, stationary_rhos, k, k_delta, lambdas, rho0s_per_lambda_delta, mu = results
-    else:
-        rhos, stationary_rhos, k, k_delta, lambdas, sigma, sigma_delta, rho0s_per_lambda_delta, mu = results
+        results['sigma'] = None
+        results['sigma_delta'] = None
 
-    return rhos, stationary_rhos, k, k_delta, lambdas, sigma, sigma_delta, rho0s_per_lambda_delta, mu
+    return results, database
