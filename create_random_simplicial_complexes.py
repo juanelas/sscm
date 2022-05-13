@@ -1,13 +1,10 @@
 import os
 from argparse import ArgumentParser
 
-from contagion.SimplicialComplex import (SimplicialComplex,
-                                         from_iacopini_cliques, from_random,
-                                         from_random_sc_file,
-                                         from_simplicial_csvs)
+from contagion.SimplicialComplex import SimplicialComplex, from_random
 from contagion.utils import (get_iacopini_cliques,
                              get_random_simplicial_complexes,
-                             get_simplicialbros_datasets)
+                             get_simplicialbros_datasets, sc_from_dataset)
 from directories import ramdom_simplicialcomplex_dir
 from logger import logger
 
@@ -19,25 +16,12 @@ from logger import logger
 #     }
 # ]
 
+
 def write_to_file(simplicial_complex: SimplicialComplex):
     filepath = os.path.join(ramdom_simplicialcomplex_dir,
                             f'N{len(simplicial_complex.nodes)}_k{simplicial_complex.k:.3f}_kdelta{simplicial_complex.k_delta:.3f}.pickle')
-    logger.info('Random simplicial complex with N=%d, k=%.3f, k_delta=%.3f written to:\n\t%s', 
-        simplicial_complex.N, simplicial_complex.k, simplicial_complex.k_delta, simplicial_complex.to_pickle_file(filepath))
-
-
-def sc_from_dataset(dataset: str) -> SimplicialComplex:
-    if dataset in simplicialbros_datasets:
-        simplicial_complex = from_simplicial_csvs(dataset)
-    elif dataset in random_simplicial_complexes:
-        simplicial_complex = from_random_sc_file(dataset)
-    elif dataset in iacopini_simplicial_complexes:
-        simplicial_complex = from_iacopini_cliques(dataset)
-    else:
-        raise Exception(
-            f'{dataset} is not a valid dataset/random simplicial complex')
-
-    return simplicial_complex
+    logger.info('Random simplicial complex with N=%d, k=%.3f, k_delta=%.3f written to:\n\t%s',
+                simplicial_complex.N, simplicial_complex.k, simplicial_complex.k_delta, simplicial_complex.to_pickle_file(filepath))
 
 
 if __name__ == "__main__":

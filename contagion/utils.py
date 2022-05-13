@@ -1,12 +1,18 @@
 import os
+import pickle
 from glob import glob
 from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
 import pandas as pd
-from directories import (iacopini_json_cliques, ramdom_simplicialcomplex_dir,
-                         stats_dir)
+from directories import (contagion_results_dir, iacopini_json_cliques,
+                         ramdom_simplicialcomplex_dir, stats_dir)
+
+from contagion.SimplicialComplex import (SimplicialComplex,
+                                         from_iacopini_cliques,
+                                         from_random_sc_file,
+                                         from_simplicial_csvs)
 
 
 def find_cut(rhos_array):
@@ -179,10 +185,11 @@ def __init_array(results: List, default_value):
     return array
 
 
-def get_random_simplicial_complexes():
-    def filename(filepath):
-        return Path(filepath).stem
+def filename(filepath):
+    return Path(filepath).stem
 
+
+def get_random_simplicial_complexes():
     return list(map(filename, glob(os.path.join(ramdom_simplicialcomplex_dir, '*.pickle'))))
 
 
@@ -198,3 +205,87 @@ def get_iacopini_cliques():
         return Path(filepath).stem.split('_')[-1]
 
     return list(set(map(dataset, glob(os.path.join(iacopini_json_cliques, '*.json')))))
+
+
+def sc_from_dataset(dataset: str) -> SimplicialComplex:
+    simplicialbros_datasets = get_simplicialbros_datasets()
+    random_simplicial_complexes = get_random_simplicial_complexes()
+    iacopini_simplicial_complexes = get_iacopini_cliques()
+
+    if dataset in simplicialbros_datasets:
+        simplicial_complex = from_simplicial_csvs(dataset)
+    elif dataset in random_simplicial_complexes:
+        simplicial_complex = from_random_sc_file(dataset)
+    elif dataset in iacopini_simplicial_complexes:
+        simplicial_complex = from_iacopini_cliques(dataset)
+    else:
+        raise Exception(
+            f'{dataset} is not a valid dataset/random simplicial complex')
+
+    return simplicial_complex
+
+
+def get_rsc_results():
+    return list(map(filename, glob(os.path.join(contagion_results_dir, 'rsc', '*.pickle'))))
+
+
+def get_simplicialbros_results(database):
+    return list(map(filename, glob(os.path.join(contagion_results_dir, database, '*.pickle'))))
+
+
+def get_iacopini_results():
+    return list(map(filename, glob(os.path.join(contagion_results_dir, 'iacopini', '*.pickle'))))
+
+
+def available_results():
+    results = {}
+
+    def my_f(a):
+        return a.split('/')[-2]
+    databases = list(map(my_f, glob(f'{contagion_results_dir}/*/')))
+    try:
+        databases.remove('rsc')
+        databases.remove('iacopini')
+    except ValueError:
+        pass
+
+    results['rsc'] = get_rsc_results()
+    results['iacopini'] = get_iacopini_results()
+
+    for database in databases:
+        results[database] = get_simplicialbros_results(database)
+
+    contagion_results_names = []
+    for db_datasets in results.values():
+        contagion_results_names.extend(db_datasets)
+    contagion_results_names.sort()
+    
+    return results, contagion_results_names
+
+
+def results_from_experiment(experiment_name: str, version: int = 2):
+    results, experiments = available_results()
+    if experiment_name not in experiments:
+        raise Exception(f'No contagion results for {experiment_name}')
+    
+    dataset_results_file = f'{experiment_name}.pickle'
+    for database in results:
+        results_dir = os.path.join(contagion_results_dir, database)
+        filepath = os.path.join(results_dir, dataset_results_file)
+        try:
+            with open(filepath, "rb") as file_handler:
+                results = pickle.load(file_handler)
+                break
+        except FileNotFoundError:
+            pass
+
+    if version is 0:
+        rhos, stationary_rhos, k, k_delta, lambdas, sigma, sigma_delta, rho0s_per_lambda_delta, mu = parse_results(
+            results)
+    elif version is 1:
+        sigma = sigma_delta = None
+        rhos, stationary_rhos, k, k_delta, lambdas, rho0s_per_lambda_delta, mu = results
+    else:
+        rhos, stationary_rhos, k, k_delta, lambdas, sigma, sigma_delta, rho0s_per_lambda_delta, mu = results
+
+    return rhos, stationary_rhos, k, k_delta, lambdas, sigma, sigma_delta, rho0s_per_lambda_delta, mu

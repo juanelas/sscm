@@ -94,7 +94,8 @@ def select_parameters_for_rhos_over_time(stationary_rhos, lambda_delta=None):
 
 def simulation(label: str, simplicial_complex, simulation_parameters, max_timesteps: int, iterations: int, processes: int):
 
-    tag, mu, sigma, sigma_delta = itemgetter('tag', 'mu', 'sigma', 'sigma_delta')(simulation_parameters)
+    tag, mu, sigma, sigma_delta = itemgetter(
+        'tag', 'mu', 'sigma', 'sigma_delta')(simulation_parameters)
 
     if 'lambdas' in simulation_parameters:
         lambdas = simulation_parameters['lambdas']
@@ -118,7 +119,8 @@ def simulation(label: str, simplicial_complex, simulation_parameters, max_timest
         lambdas = 1.*(simplicial_complex.k/mu) * np.array(betas)
         rho0s_per_lambda_delta = {}
         for key, val in rho0s_per_beta_delta.items():
-            rho0s_per_lambda_delta[float(key) * simplicial_complex.k / mu] = val
+            rho0s_per_lambda_delta[float(
+                key) * simplicial_complex.k / mu] = val
 
     else:
         raise Exception('Either lambdas or betas MUST be provided')
@@ -194,7 +196,8 @@ def main(datasets: List[str], max_timesteps=MAX_TIMESTEPS, iterations=ITERATIONS
         else:
             raise Exception(
                 f'{dataset} is not a valid dataset/random simplicial complex')
-        logger.info('Chosen dataset: %s, k=%f, k_delta=%f', dataset, simplicial_complex.k, simplicial_complex.k_delta)
+        logger.info('Chosen dataset: %s, k=%f, k_delta=%f', dataset,
+                    simplicial_complex.k, simplicial_complex.k_delta)
         for simulation_parameters in simulations_parameters:
             tag = itemgetter('tag')(simulation_parameters)
             label = f'{dataset}_{tag} - lambda_slices'
@@ -211,20 +214,29 @@ def main(datasets: List[str], max_timesteps=MAX_TIMESTEPS, iterations=ITERATIONS
                 rhos, stationary_rhos, k, k_delta, lambdas, sigma, sigma_delta, rho0s_per_lambda_delta, mu = results
 
                 lambda_delta = None
-                if "lambda_delta" in simulation_parameters["rhos_over_time"] and (type(simulation_parameters["rhos_over_time"]["lambda_delta"]) is float or type(simulation_parameters["rhos_over_time"]["lambda_delta"]) is int):
+                if "lambda_delta" in simulation_parameters["rhos_over_time"] and isinstance(simulation_parameters["rhos_over_time"]["lambda_delta"], (float, int)):
                     lambda_delta = simulation_parameters["rhos_over_time"]["lambda_delta"]
+                
+                if "beta_delta" in simulation_parameters["rhos_over_time"] and isinstance(simulation_parameters["rhos_over_time"]["beta_delta"], (float, int)):
+                    if lambda_delta is not None:
+                        raise Exception('Simulation parameters MUST depend either on betas or lambdas, but not both')
+                    lambda_delta = 1.*(k/mu) * simulation_parameters["rhos_over_time"]["beta_delta"]
 
                 lambda1 = None
-                if "lambda" in simulation_parameters["rhos_over_time"] and (type(simulation_parameters["rhos_over_time"]["lambda"]) is float or type(simulation_parameters["rhos_over_time"]["lambda"]) is int):
+                if "lambda" in simulation_parameters["rhos_over_time"] and isinstance(simulation_parameters["rhos_over_time"]["lambda"], (float, int)):
                     lambda1 = simulation_parameters["rhos_over_time"]["lambda"]
-                else:
+                
+                if "beta" in simulation_parameters["rhos_over_time"] and isinstance(simulation_parameters["rhos_over_time"]["beta"], (float, int)):
+                    if lambda1 is not None:
+                        raise Exception('Simulation parameters MUST depend either on betas or lambdas, but not both')
+                    lambda1 = 1.*(k/mu) * simulation_parameters["rhos_over_time"]["beta"]
+                
+                if lambda1 is None or lambda_delta is None:
                     lambda1, lambda_delta = select_parameters_for_rhos_over_time(
                         stationary_rhos, lambda_delta)
 
                 rhos_over_time_parameters = {
-                    # Infection parameters. For the slices with different values of lambda
                     "mu": simulation_parameters["mu"],
-                    # from 0.2 to 3.0 every 0.2. I use 3.1 because final value is not included
                     "lambdas": [lambda1],
                     "rho0s_per_lambda_delta": {
                         lambda_delta: simulation_parameters["rhos_over_time"]["rho_0s"]
