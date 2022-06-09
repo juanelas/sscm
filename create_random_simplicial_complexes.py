@@ -19,7 +19,7 @@ from logger import logger
 
 def write_to_file(simplicial_complex: SimplicialComplex):
     filepath = os.path.join(ramdom_simplicialcomplex_dir,
-                            f'N{len(simplicial_complex.nodes)}_k{simplicial_complex.k:.3f}_kdelta{simplicial_complex.k_delta:.3f}.pickle')
+                            f'N{len(simplicial_complex.node_ids)}_k{simplicial_complex.k:.3f}_kdelta{simplicial_complex.k_delta:.3f}.pickle')
     logger.info('Random simplicial complex with N=%d, k=%.3f, k_delta=%.3f written to:\n\t%s',
                 simplicial_complex.N, simplicial_complex.k, simplicial_complex.k_delta, simplicial_complex.to_pickle_file(filepath))
 

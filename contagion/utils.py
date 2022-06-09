@@ -271,6 +271,7 @@ def results_from_experiment(experiment_name: str, version: int = 2):
         raise Exception(f'No contagion results for {experiment_name}')
 
     dataset_results_file = f'{experiment_name}.pickle'
+    database = None
     for database in experiments_dict:
         results_dir = os.path.join(contagion_results_dir, database)
         filepath = os.path.join(results_dir, dataset_results_file)

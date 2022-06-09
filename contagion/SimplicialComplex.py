@@ -3,72 +3,95 @@ import os
 import pickle
 import random
 from itertools import combinations
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Sequence, Set, Tuple
 
 import pandas as pd
 from directories import (db_simplicialcomplex_dir, iacopini_json_cliques,
                          ramdom_simplicialcomplex_dir, stats_dir)
 
 
+Edge = Tuple[int, int]
+Triangle = Tuple[int, int, int]
+
+
+class Node():
+    node_id: int
+    triangle_neighbours: List[Edge]
+    neighbours: List[int]
+
+    def __init__(self, node_id: int) -> None:
+        self.node_id = node_id
+        self.triangle_neighbours = []
+        self.neighbours = []
+
+    def add_neighbours(self, qface):
+        q = len(qface) - 1
+        if q == 1:  # edge
+            self.neighbours.append(qface[0] if qface[0] != self.node_id else qface[1])
+        elif q > 1:  # triangle or more
+            self.triangle_neighbours.extend([tuple(node for node in qface if node != self.node_id)])
+        else:
+            raise Exception('Only up to 2-faces (triangles) supported by now')
+
+
 class SimplicialComplex:
-    nodes: List[int]
-    edges: List[Tuple[int, int]]
-    triangles: List[Tuple[int, int, int]]
+    node_ids: List[int]
+    edges: List[Edge]
+    triangles: List[Triangle]
     k: float
     k_delta: float
     _avg_k: float
     _avg_k_delta: float
-    _node_neighbours: Dict[int, Set[int]]
+    _nodes: Dict[int, Node]
 
-    def __init__(self, nodes: List[int], edges: List[Tuple[int, int]], triangles: List[Tuple[int, int, int]], k: float = None, k_delta: float = None) -> None:
-        self.nodes = nodes
+    def __init__(self, nodes: List[int], edges: List[Edge], triangles: List[Triangle], k: float = None, k_delta: float = None) -> None:
+        self.node_ids = nodes
         self.edges = edges
         self.triangles = triangles
         self.k = k
         self.k_delta = k_delta
         self._avg_k = None
         self._avg_k_delta = None
-        self._node_neighbours = {}
+        self._nodes = {}
 
         if self.k is None:
             self.k = self.avg_k
         if self.k_delta is None:
             self.k_delta = self.avg_k_delta
 
-    def _add_neighbours(self, neighbours: Set[int]):
-        for node in neighbours:
-            node_neighbours = [
-                neighbour for neighbour in neighbours if neighbour is not node]
-            if node not in self._node_neighbours:
-                self._node_neighbours[node] = set(node_neighbours)
-            else:
-                self._node_neighbours[node].update(set(node_neighbours))
+    def _add_neighbours(self, node_ids: Tuple):
+        for node in node_ids:
+            if node not in self._nodes:
+                self._nodes[node] = Node(node)
+            self._nodes[node].add_neighbours(node_ids)
+
 
     @property
-    def node_neighbours(self):
-        if not self._node_neighbours:
+    def nodes(self):
+        if not self._nodes:
             for edge in self.edges:
-                self._add_neighbours(set(edge))
+                self._add_neighbours(edge)
             for triangle in self.triangles:
-                self._add_neighbours(set(triangle))
+                self._add_neighbours(triangle)
 
-        return self._node_neighbours
+        return self._nodes
 
     @property
     def N(self) -> int:
-        return len(self.nodes)
+        return len(self.node_ids)
 
     @property
     def avg_k(self) -> float:
         if self._avg_k is None:
-            self._avg_k = 1.*sum([len(v)
-                                 for v in self.node_neighbours.values()])/self.N
+            self._avg_k = 1.*sum([len(node.neighbours)
+                                 for node in self.nodes.values()])/self.N
         return self._avg_k
 
     @property
     def avg_k_delta(self) -> float:
         if self._avg_k_delta is None:
-            self._avg_k_delta = 3.*len(self.triangles)/self.N
+            self._avg_k_delta =  1.*sum([len(node.triangle_neighbours)
+                                 for node in self.nodes.values()])/self.N
         return self._avg_k_delta
 
     def to_pickle_file(self, file, overwrite=False):
@@ -87,7 +110,7 @@ class SimplicialComplex:
 
         with open(filepath, 'wb') as file:
             pickle.dump({
-                "nodes": self.nodes,
+                "nodes": self.node_ids,
                 "edges": self.edges,
                 "triangles": self.triangles,
                 "k": self.k,
@@ -184,7 +207,7 @@ def from_iacopini_cliques(dataset, n_minutes=5, thr=.8, realization=0):
 
     with open(filepath, 'r', encoding='utf8') as file:
         cliques_list = json.load(file)
-        
+
         # # considering one realization of the SCM
         # realization_number = random.choice(range(len(cliques_list)))
         # cliques = cliques_list[realization_number]

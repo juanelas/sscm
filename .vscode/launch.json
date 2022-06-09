@@ -9,7 +9,7 @@
       "type": "python",
       "request": "launch",
       "program": "contagion_model.py",
-      "args": ["-d", "N500_k20.0_kdelta6.0", "-i", "10"],
+      "args": ["-d", "N500_k20.000_kdelta6.000", "-i", "6"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true
@@ -35,10 +35,11 @@
       "justMyCode": true
     },
     {
-      "name": "Create rsc",
+      "name": "create rsc",
       "type": "python",
       "request": "launch",
       "program": "create_random_simplicial_complexes.py",
+      "args": ["-N", "500", "-k", "6", "-kd", "20"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true

@@ -42,35 +42,143 @@ simulations_parameters = [
     #         "lambda_delta": None  # If not set is automatically chosen
     #     }
     # },
-    {  # Experiment 1
-        "tag": "ex1",
-        "mu": 0.7,
-        "betas": np.array([.5]),
+    # {  # Experiment 1
+    #     "tag": "ex1",
+    #     "mu": 0.5,
+    #     "betas": np.array([.01]),
+    #     "rho0s_per_beta_delta": {
+    #         0.03333333333333333: [.2, .8]
+    #     },
+    #     "sigma": 0.003322259136212625,
+    #     "sigma_delta": 0.01107419712070875
+    # },
+    # {  # Experiment 1 no stochastic
+    #     "tag": "ex1_sigma0",
+    #     "mu": 0.5,
+    #     "betas": np.array([.01]),
+    #     "rho0s_per_beta_delta": {
+    #         0.03333333333333333: [.2, .8]
+    #     }
+    # },
+    # {  # Experiment 2
+    #     "tag": "ex2",
+    #     "mu": 0.970873786407767,
+    #     "betas": np.array([0.05]),
+    #     "rho0s_per_beta_delta": {
+    #         0.16666666666666666: [.2, .8]
+    #     },
+    #     "sigma": 0.023809523809523808,
+    #     "sigma_delta": 0.07936507936507936
+    # },
+    # {  # Experiment 2 no stochastic
+    #     "tag": "ex2_sigma0",
+    #     "mu": 0.970873786407767,
+    #     "betas": np.array([0.05]),
+    #     "rho0s_per_beta_delta": {
+    #         0.16666666666666666: [.2, .8]
+    #     }
+    # },
+    # {  # Experiment 3
+    #     "tag": "ex3",
+    #     "mu": 0.5,
+    #     "betas": np.array([.03]),
+    #     "rho0s_per_beta_delta": {
+    #         0.09999999999999999: [.2, .8]
+    #     },
+    #     "sigma": 0.009966777408637875,
+    #     "sigma_delta": 0.03322259136212625
+    # },
+    # {  # Experiment 3 no stochastic
+    #     "tag": "ex3_sigma0",
+    #     "mu": 0.5,
+    #     "betas": np.array([.03]),
+    #     "rho0s_per_beta_delta": {
+    #         0.09999999999999999: [.2, .8]
+    #     }
+    # }
+    # {  # Experiment 1 paper
+    #     "tag": "ex1",
+    #     "mu": 0.7,
+    #     "betas": np.array([0.025]),
+    #     "rho0s_per_beta_delta": {
+    #         0.041666666666666664: [.2, .8]
+    #     },
+    #     "sigma": 0.017499999999999998,
+    #     "sigma_delta": 0.041666666666666664,
+    #     "bounded_beta": False
+    # },
+    # {  # Experiment 1 paper no stochastic
+    #     "tag": "ex1_sigma0",
+    #     "mu": 0.7,
+    #     "betas": np.array([0.025]),
+    #     "rho0s_per_beta_delta": {
+    #         0.041666666666666664: [.2, .8]
+    #     }
+    # },
+    # {  # Experiment 2 paper
+    #     "tag": "ex2",
+    #     "mu": 0.5,
+    #     "betas": np.array([0.03]),
+    #     "rho0s_per_beta_delta": {
+    #         0.09999999999999999: [.2, .8]
+    #     },
+    #     "sigma": 0.034999999999999996,
+    #     "sigma_delta": 0.11666666666666665,
+    #     "bounded_beta": False
+    # },
+    # {  # Experiment 2 paper no stochastic
+    #     "tag": "ex2_sigma0",
+    #     "mu": 0.5,
+    #     "betas": np.array([0.03]),
+    #     "rho0s_per_beta_delta": {
+    #         0.09999999999999999: [.2, .8]
+    #     }
+    # },
+    # {  # Experiment 3 paper
+    #     "tag": "ex3",
+    #     "mu": 0.7,
+    #     "betas": np.array([.04]),
+    #     "rho0s_per_beta_delta": {
+    #         0.13333333333333333: [.2, .8]
+    #     },
+    #     "sigma": 0.01,
+    #     "sigma_delta": 0.03333333333333333,
+    #     "bounded_beta": False
+    # },
+    # {  # Experiment 3 no paper stochastic
+    #     "tag": "ex3_sigma0",
+    #     "mu": 0.7,
+    #     "betas": np.array([.04]),
+    #     "rho0s_per_beta_delta": {
+    #         0.13333333333333333: [.2, .8]
+    #     }
+    # },
+    # {  # Experiment 3 no paper stochastic
+    #     "tag": "ex3_sigma0",
+    #     "mu": 0.7,
+    #     "betas": np.array([.04]),
+    #     "rho0s_per_beta_delta": {
+    #         0.13333333333333333: [.2, .8]
+    #     }
+    # },
+    {  # Juan's case
+        "tag": "ex4",
+        "mu": 0.6,
+        "betas": np.array([0.033]),
         "rho0s_per_beta_delta": {
-            .25: [.2, .8]
+            0.02: [.2, .8]
         },
-        "sigma": .35,
-        "sigma_delta": .25
+        "sigma": 0.03464101615137755,
+        "sigma_delta": 0.03464101615137755,
+        "bounded_beta": False
     },
-    {  # Experiment 2
-        "tag": "ex2",
-        "mu": 0.5,
-        "betas": np.array([.6]),
+    {  # Juan's case
+        "tag": "ex4_sigma0",
+        "mu": 0.6,
+        "betas": np.array([0.033]),
         "rho0s_per_beta_delta": {
-            .3: [.2, .8]
-        },
-        "sigma": .5,
-        "sigma_delta": .6
-    },
-    {  # Experiment 3
-        "tag": "ex3",
-        "mu": 0.7,
-        "betas": np.array([.8]),
-        "rho0s_per_beta_delta": {
-            .8: [.2, .8]
-        },
-        "sigma": .2,
-        "sigma_delta": .2
+            0.02: [.2, .8]
+        }
     }
 ]
 
@@ -94,8 +202,12 @@ def select_parameters_for_rhos_over_time(stationary_rhos, lambda_delta=None):
 
 def simulation(label: str, simplicial_complex, simulation_parameters, max_timesteps: int, iterations: int, processes: int):
 
-    tag, mu, sigma, sigma_delta = itemgetter(
-        'tag', 'mu', 'sigma', 'sigma_delta')(simulation_parameters)
+    tag, mu = itemgetter('tag', 'mu')(simulation_parameters)
+    
+    sigma = simulation_parameters.get('sigma')
+    sigma_delta = simulation_parameters.get('sigma_delta')
+
+    bounded_beta = simulation_parameters.get('bounded_beta')
 
     if 'lambdas' in simulation_parameters:
         lambdas = simulation_parameters['lambdas']
@@ -144,7 +256,7 @@ def simulation(label: str, simplicial_complex, simulation_parameters, max_timest
     for iteration in range(iterations):
         description = f'[{label} - {tag}] lambdas={lambdas_str}, sigma={sigma}, sigma_delta={sigma_delta}, mu={mu}, rho0s_per_lambda_delta={rho0s_per_lambda_delta_str}: it{iteration + 1}/{iterations}'
         arguments.append([f'{description}', simplicial_complex,
-                          lambdas, sigma, sigma_delta, mu, rho0s_per_lambda_delta, max_timesteps])
+                          lambdas, sigma, sigma_delta, mu, rho0s_per_lambda_delta, max_timesteps, bounded_beta])
 
     # Multiprocessing
     results = []
