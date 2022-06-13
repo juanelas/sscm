@@ -8,7 +8,7 @@ from .utils import get_stationary_rho
 
 
 def run_simulation(args):
-    description, simplicial_complex, lambdas, sigma, sigma_delta, mu, rho0s_per_lambda_delta, max_timesteps, bounded_beta = args
+    description, simplicial_complex, lambdas, sigma, sigma_delta, mu, rho0s_per_lambda_delta, max_timesteps, bounded_beta, independent_noises = args
 
     k = simplicial_complex.k
     k_delta = simplicial_complex.k_delta
@@ -38,7 +38,7 @@ def run_simulation(args):
             for idx, beta in enumerate(betas):
                 lambda1 = lambdas[idx]
 
-                simplagion_model = SimplagionModel(simplicial_complex, beta, beta_delta, mu, sigma, sigma_delta, bounded_beta)
+                simplagion_model = SimplagionModel(simplicial_complex, beta, beta_delta, mu, sigma, sigma_delta, bounded_beta, independent_noises)
                 simplagion_model.initial_infections(initial_rate_of_infected_nodes=rho_0)
                 simplagion_model.run(max_timesteps)
 

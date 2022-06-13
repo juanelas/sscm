@@ -9,7 +9,7 @@
       "type": "python",
       "request": "launch",
       "program": "contagion_model.py",
-      "args": ["-d", "N500_k20.000_kdelta6.000", "-i", "6"],
+      "args": ["-d", "N500_k20.000_kdelta6.000", "-i", "10"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true

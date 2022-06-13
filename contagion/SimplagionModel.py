@@ -7,30 +7,18 @@ from contagion.SimplicialComplex import Node, SimplicialComplex
 
 
 class ContagionNode(Node):
-    beta: float
-    beta_delta: float
-    mu: float
-    sigma: float
-    sigma_delta: float
-    bounded_beta: bool
     infected: bool
 
-    def __init__(self, node: Node, beta: float, beta_delta: float, mu: float, sigma: float = None, sigma_delta: float = None, bounded_beta: bool = True) -> None:
+    def __init__(self, node: Node) -> None:
         super().__init__(node.node_id)
         self.neighbours = node.neighbours
         self.triangle_neighbours = node.triangle_neighbours
 
-        self.beta = beta
-        self.beta_delta = beta_delta
-        self.mu = mu
-        self.sigma = sigma
-        self.sigma_delta = sigma_delta
-        self.bounded_beta = bounded_beta
         self.infected = False
 
 
-def node_recover(node: ContagionNode) -> bool:
-    if random.random() <= node.mu:
+def node_recover(node: ContagionNode, mu:float) -> bool:
+    if random.random() <= mu:
         node.infected = False
         return True
     return False
@@ -64,6 +52,7 @@ class SimplagionModel():
     sigma: float
     sigma_delta: float
     bounded_beta: bool
+    independent_noises: bool
 
     nodes: Dict[int, ContagionNode]
 
@@ -73,7 +62,7 @@ class SimplagionModel():
     no_infected_nodes: List[int]
     rhos: List[float]
 
-    def __init__(self, simplicial_complex: SimplicialComplex, beta: float, beta_delta: float, mu: float, sigma: float = None, sigma_delta: float = None, bounded_beta=True):
+    def __init__(self, simplicial_complex: SimplicialComplex, beta: float, beta_delta: float, mu: float, sigma: float = None, sigma_delta: float = None, bounded_beta: bool = False, independent_noises: bool = False):
         # parameters
         self.simplicial_complex = simplicial_complex
 
@@ -83,11 +72,11 @@ class SimplagionModel():
         self.sigma = sigma
         self.sigma_delta = sigma_delta
         self.bounded_beta = bounded_beta
+        self.independent_noises = independent_noises
 
         self.nodes = {}
         for node_id, node in simplicial_complex.nodes.items():
-            self.nodes[node_id] = ContagionNode(
-                node, beta, beta_delta, mu, sigma, sigma_delta, bounded_beta)
+            self.nodes[node_id] = ContagionNode(node)
 
         self.initial_rate_of_infected_nodes = 0
 
@@ -115,10 +104,12 @@ class SimplagionModel():
         timestep = 1
 
         while self.no_infected_nodes[-1] > 0 and self.no_infected_nodes[-1] < self.simplicial_complex.N and timestep < max_timesteps:
-            beta = get_beta(beta=self.beta, sigma=self.sigma,
-                            bounded=self.bounded_beta)
-            beta_delta = get_beta(
-                beta=self.beta_delta, sigma=self.sigma_delta, bounded=self.bounded_beta)
+            awgn_sample = normal_random_sample(bounded=self.bounded_beta)
+            beta = get_beta(self.beta, self.sigma, awgn_sample=awgn_sample)
+
+            if self.independent_noises:
+                awgn_sample = normal_random_sample(bounded=self.bounded_beta)
+            beta_delta = get_beta(self.beta_delta, self.sigma_delta, awgn_sample=awgn_sample)
 
             non_infected_nodes = [
                 node for node in self.nodes.values() if node.infected is False]
@@ -152,7 +143,7 @@ class SimplagionModel():
             # # Update the nodes that have been infected
             # self.infected.update(newly_infected)
 
-            recovered = list(filter(node_recover, infected_nodes))
+            recovered = list(filter(lambda x: node_recover(x, self.mu), infected_nodes))
 
             # Update the nodes that have been infected
             for node in newly_infected:
@@ -176,14 +167,11 @@ class SimplagionModel():
             timestep += 1
 
 
-def bounded_normal_random_sample(mean: float = None, std_dev: float = None, bounded: bool = True):
+def normal_random_sample(mean: float = None, std_dev: float = None, bounded: bool = True):
     if mean is None:
-        mean = 1
+        mean = 0
     if std_dev is None:
         std_dev = 1
-
-    if mean > 1 or mean < 0:
-        raise Exception('beta mean MUST be 0<=mean<=1. It is a probability!!')
 
     ret = np.random.normal(mean, std_dev)
 
@@ -194,8 +182,9 @@ def bounded_normal_random_sample(mean: float = None, std_dev: float = None, boun
     return ret
 
 
-def get_beta(beta: float, sigma: float = None, bounded: bool = True):
+def get_beta(beta: float, sigma: float = None, awgn_sample: float = None):
     if sigma is None:
         return beta
-
-    return bounded_normal_random_sample(beta, sigma, bounded)
+    if awgn_sample is None:
+        raise Exception('awgn sample MUST be provided for stochastic betas')
+    return beta + sigma * awgn_sample

@@ -4,6 +4,7 @@ import sys
 from argparse import ArgumentParser
 from multiprocessing import Pool
 from operator import itemgetter
+from time import time
 from typing import List
 
 import numpy as np
@@ -103,9 +104,11 @@ simulations_parameters = [
     #     "rho0s_per_beta_delta": {
     #         0.041666666666666664: [.2, .8]
     #     },
+    #     "timesteps": 2000,
     #     "sigma": 0.017499999999999998,
     #     "sigma_delta": 0.041666666666666664,
-    #     "bounded_beta": False
+    #     "bounded_beta": False,
+    #     "independent_noises": False
     # },
     # {  # Experiment 1 paper no stochastic
     #     "tag": "ex1_sigma0",
@@ -113,26 +116,30 @@ simulations_parameters = [
     #     "betas": np.array([0.025]),
     #     "rho0s_per_beta_delta": {
     #         0.041666666666666664: [.2, .8]
-    #     }
-    # },
-    # {  # Experiment 2 paper
-    #     "tag": "ex2",
-    #     "mu": 0.5,
-    #     "betas": np.array([0.03]),
-    #     "rho0s_per_beta_delta": {
-    #         0.09999999999999999: [.2, .8]
     #     },
-    #     "sigma": 0.034999999999999996,
-    #     "sigma_delta": 0.11666666666666665,
-    #     "bounded_beta": False
+    #     "timesteps": 2000
     # },
+    {  # Experiment 2 paper
+        "tag": "ex2",
+        "mu": 0.5,
+        "betas": np.array([0.03]),
+        "rho0s_per_beta_delta": {
+            0.09999999999999999: [.2, .8]
+        },
+        "timesteps": 50000,
+        "sigma": 0.034999999999999996,
+        "sigma_delta": 0.11666666666666665,
+        "bounded_beta": False,
+        "independent_noises": False
+    }
     # {  # Experiment 2 paper no stochastic
     #     "tag": "ex2_sigma0",
     #     "mu": 0.5,
     #     "betas": np.array([0.03]),
     #     "rho0s_per_beta_delta": {
     #         0.09999999999999999: [.2, .8]
-    #     }
+    #     },
+    #     "timesteps": 20000
     # },
     # {  # Experiment 3 paper
     #     "tag": "ex3",
@@ -141,9 +148,11 @@ simulations_parameters = [
     #     "rho0s_per_beta_delta": {
     #         0.13333333333333333: [.2, .8]
     #     },
+    #     "timesteps": 2000,
     #     "sigma": 0.01,
     #     "sigma_delta": 0.03333333333333333,
-    #     "bounded_beta": False
+    #     "bounded_beta": False,
+    #     "independent_noises": False
     # },
     # {  # Experiment 3 no paper stochastic
     #     "tag": "ex3_sigma0",
@@ -151,35 +160,31 @@ simulations_parameters = [
     #     "betas": np.array([.04]),
     #     "rho0s_per_beta_delta": {
     #         0.13333333333333333: [.2, .8]
-    #     }
+    #     },
+    #     "timesteps": 2000,
     # },
-    # {  # Experiment 3 no paper stochastic
-    #     "tag": "ex3_sigma0",
-    #     "mu": 0.7,
-    #     "betas": np.array([.04]),
+    # {  # Juan's case
+    #     "tag": "ex4",
+    #     "mu": 0.6,
+    #     "betas": np.array([0.033]),
     #     "rho0s_per_beta_delta": {
-    #         0.13333333333333333: [.2, .8]
-    #     }
+    #         0.02: [.2, .8]
+    #     },
+    #     "timesteps": 2000,
+    #     "sigma": 0.03464101615137755,
+    #     "sigma_delta": 0.03464101615137755,
+    #     "bounded_beta": False,
+    #     "independent_noises": False
     # },
-    {  # Juan's case
-        "tag": "ex4",
-        "mu": 0.6,
-        "betas": np.array([0.033]),
-        "rho0s_per_beta_delta": {
-            0.02: [.2, .8]
-        },
-        "sigma": 0.03464101615137755,
-        "sigma_delta": 0.03464101615137755,
-        "bounded_beta": False
-    },
-    {  # Juan's case
-        "tag": "ex4_sigma0",
-        "mu": 0.6,
-        "betas": np.array([0.033]),
-        "rho0s_per_beta_delta": {
-            0.02: [.2, .8]
-        }
-    }
+    # {  # Juan's case
+    #     "tag": "ex4_sigma0",
+    #     "mu": 0.6,
+    #     "betas": np.array([0.033]),
+    #     "rho0s_per_beta_delta": {
+    #         0.02: [.2, .8]
+    #     },
+    #     "timesteps": 2000,
+    # }
 ]
 
 
@@ -208,6 +213,12 @@ def simulation(label: str, simplicial_complex, simulation_parameters, max_timest
     sigma_delta = simulation_parameters.get('sigma_delta')
 
     bounded_beta = simulation_parameters.get('bounded_beta')
+    independent_noises = simulation_parameters.get('independent_noises')
+
+    timesteps = max_timesteps if max_timesteps else simulation_parameters.get('timesteps')
+    if not timesteps:
+        timesteps = MAX_TIMESTEPS
+
 
     if 'lambdas' in simulation_parameters:
         lambdas = simulation_parameters['lambdas']
@@ -256,7 +267,7 @@ def simulation(label: str, simplicial_complex, simulation_parameters, max_timest
     for iteration in range(iterations):
         description = f'[{label} - {tag}] lambdas={lambdas_str}, sigma={sigma}, sigma_delta={sigma_delta}, mu={mu}, rho0s_per_lambda_delta={rho0s_per_lambda_delta_str}: it{iteration + 1}/{iterations}'
         arguments.append([f'{description}', simplicial_complex,
-                          lambdas, sigma, sigma_delta, mu, rho0s_per_lambda_delta, max_timesteps, bounded_beta])
+                          lambdas, sigma, sigma_delta, mu, rho0s_per_lambda_delta, timesteps, bounded_beta, independent_noises])
 
     # Multiprocessing
     results = []
@@ -290,7 +301,7 @@ def save_to_file(dirname, filename, extension, contents):
     return filepath
 
 
-def main(datasets: List[str], max_timesteps=MAX_TIMESTEPS, iterations=ITERATIONS, processes=PROCESSES):
+def main(datasets: List[str], max_timesteps: int, iterations: int, processes: int):
     # simplicialbros_datasets = get_simplicialbros_datasets()
     # random_simplicial_complexes = get_random_simplicial_complexes()
     for dataset in datasets:
@@ -381,7 +392,7 @@ if __name__ == "__main__":
                        action="store_true")
     parser.add_argument("-t",
                         "--timesteps",
-                        help="the maximum amount of time steps to simulate")
+                        help="the maximum amount of time steps to simulate (overwrites those in simulation parameters)")
     parser.add_argument("-i",
                         "--iterations",
                         help="the amount of iterations to run")
@@ -413,10 +424,10 @@ if __name__ == "__main__":
 
     dsets: List[str] = args.datasets.split(',')
 
-    max_timesteps = int(args.timesteps) if args.timesteps else MAX_TIMESTEPS
+    max_timesteps = int(args.timesteps) if args.timesteps else None
 
     iterations = int(args.iterations) if args.iterations else ITERATIONS
 
     processes = int(args.processes) if args.processes else PROCESSES
 
-    main(dsets, max_timesteps, iterations, processes)
+    main(datasets=dsets, max_timesteps=max_timesteps, iterations=iterations, processes=processes)
