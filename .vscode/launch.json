@@ -19,7 +19,7 @@
       "type": "python",
       "request": "launch",
       "program": "contagion_model.py",
-      "args": ["-d", "InVS15", "-i", "10"],
+      "args": ["-d", "InVS15", "-e", "ex1b,ex1b_sigma0", "-i", "10"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true

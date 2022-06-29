@@ -40,3 +40,7 @@ if not os.path.exists(contagion_figures_dir):
     os.makedirs(contagion_figures_dir)
 
 iacopini_json_cliques = config['Iacopini']['json_cliques_dir']
+
+sc_degrees_figures_dir = os.path.join(_figurespath, 'sc_degrees')
+if not os.path.exists(sc_degrees_figures_dir):
+    os.makedirs(sc_degrees_figures_dir)
