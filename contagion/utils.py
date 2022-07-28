@@ -1,3 +1,4 @@
+import math
 import os
 import pickle
 from glob import glob
@@ -289,3 +290,62 @@ def results_from_experiment(experiment_name: str, version: int = 2):
         results['sigma_delta'] = None
 
     return results, database
+
+# Notación moderna  sigma=sigma1*k
+def get_simluation_parameters(dataset: str, mu: float, sigma: float, J0: float, J0_delta: float):
+    sc = sc_from_dataset(dataset)
+    k1 = sc.k
+    k2 = sc.k_delta
+    eta = (sigma**2)/(2*mu)
+    if eta >= 1:
+        raise Exception('only valid for eta < 1' + f' eta={eta}')
+
+    J0asterisk = (2 * math.sqrt(eta)) / (1+eta)
+
+    sigma1 = sigma / k1
+    beta = J0 * (mu + (sigma**2)/2)
+    beta1 = beta / k1
+
+    beta2 = (J0_delta / J0) * (k1 / k2) * beta1
+    sigma2 = (J0_delta / J0) * (k1 / k2) * sigma1
+    beta_delta = beta2 * k2
+    sigma_delta = sigma2 * k2
+
+    R0 = beta / mu
+    R0_delta = beta_delta / mu
+
+    Xminus_sigma0 = (R0_delta - R0 - math.sqrt((R0 + R0_delta)**2 - 4 * R0_delta)) / (2 * R0_delta)
+
+    G1 = J0 < J0asterisk and (((R0_delta + R0)**2 - 4*R0) > 0)
+    region_unstable = J0 > 1
+    region_stochastic_bistable = (J0 > J0asterisk) and (J0 < 1) and (
+        (1 + eta - 4*J0_delta/((J0_delta + J0)**2)) * 4*J0_delta*(J0**2) > eta * (J0_delta + J0)**2) and J0_delta > 1
+
+    region = None
+    if G1:
+        region = 'G1'
+    if region_unstable:
+        region = 'unstable'
+    if region_stochastic_bistable:
+        region = 'stochastic bi-stable'
+
+    return {
+        "k1": k1,
+        "k2": k2,
+        "mu": mu,
+        "beta1": beta1,
+        "sigma1": sigma1,
+        "beta2": beta2,
+        "sigma2": sigma2,
+        "beta": beta,
+        "sigma": sigma,
+        "beta_delta": beta_delta,
+        "sigma_delta": sigma_delta,
+        "R0": R0,
+        "R0_delta": R0_delta,
+        "J0": J0,
+        "J0_delta": J0_delta,
+        "J0_asterisk": J0asterisk,
+        "Xminus_sigma0": Xminus_sigma0,
+        "region": region
+    }

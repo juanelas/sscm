@@ -1,0 +1,2 @@
+export dataset="tags-ask-ubuntu"
+python contagion_model.py -d ${dataset} -e J_${dataset}_ex1,J_${dataset}_ex1_sigma0,J_${dataset}_ex2a,J_${dataset}_ex2a_sigma0,J_${dataset}_ex2b,J_${dataset}_ex2b_sigma0,J_${dataset}_ex3,J_${dataset}_ex3_sigma0 -i 10 -f

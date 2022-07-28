@@ -27,9 +27,11 @@ class Node():
     def add_neighbours(self, qface):
         q = len(qface) - 1
         if q == 1:  # edge
-            self.neighbours.append(qface[0] if qface[0] != self.node_id else qface[1])
+            self.neighbours.append(
+                qface[0] if qface[0] != self.node_id else qface[1])
         elif q > 1:  # triangle or more
-            self.triangle_neighbours.extend([tuple(node for node in qface if node != self.node_id)])
+            self.triangle_neighbours.extend(
+                [tuple(node for node in qface if node != self.node_id)])
         else:
             raise Exception('Only up to 2-faces (triangles) supported by now')
 
@@ -65,7 +67,6 @@ class SimplicialComplex:
                 self._nodes[node] = Node(node)
             self._nodes[node].add_neighbours(node_ids)
 
-
     @property
     def nodes(self):
         if not self._nodes:
@@ -73,6 +74,9 @@ class SimplicialComplex:
                 self._add_neighbours(edge)
             for triangle in self.triangles:
                 self._add_neighbours(triangle)
+            for node in self.node_ids:
+                if node not in self._nodes:
+                    self._nodes[node] = Node(node)
 
         return self._nodes
 
@@ -90,8 +94,8 @@ class SimplicialComplex:
     @property
     def avg_k_delta(self) -> float:
         if self._avg_k_delta is None:
-            self._avg_k_delta =  1.*sum([len(node.triangle_neighbours)
-                                 for node in self.nodes.values()])/self.N
+            self._avg_k_delta = 1.*sum([len(node.triangle_neighbours)
+                                        for node in self.nodes.values()])/self.N
         return self._avg_k_delta
 
     def to_pickle_file(self, file, overwrite=False):
@@ -149,22 +153,30 @@ def from_simplicial_csvs(dataset: str):
     triangles = list(map(tuple, __get_faces(
         triangles_csv)['nodes'].values.tolist()))
 
-    degrees = pd.read_csv(degrees_csv, sep=';')
-    k = float(degrees.loc[degrees['dataset'] ==
-              dataset].loc[degrees['q'] == 0]['node_to_qfaces_degree[1]: avg'])
+    # degrees = pd.read_csv(degrees_csv, sep=';')
+    # k = float(degrees.loc[degrees['dataset'] ==
+    #           dataset].loc[degrees['q'] == 0]['node_to_qfaces_degree[1]: avg'])
 
-    k_delta = float(degrees.loc[degrees['dataset'] ==
-                    dataset].loc[degrees['q'] == 0]['node_to_qfaces_degree[2]: avg'])
+    # k_delta = float(degrees.loc[degrees['dataset'] ==
+    #                 dataset].loc[degrees['q'] == 0]['node_to_qfaces_degree[2]: avg'])
 
-    return SimplicialComplex(nodes, edges, triangles, k, k_delta)
+    return SimplicialComplex(nodes, edges, triangles)
 
 
-def from_random(N: int, k: float, k_delta: float):
-    p2 = (2.*k_delta)/((N-1.)*(N-2.))
-    p1 = (k - 2.*k_delta)/((N-1.) - 2.*k_delta)
+def from_random(N: int, k1: float, k2: float):
+
+    p2 = (2.*k2)/((N-1.)*(N - 2))
+    p1 = (k1 - 2.*k2)/(N - 1 - 2.*k2)
     if (p1 < 0) or (p2 < 0):
-        raise ValueError('Negative probability!')
+        raise ValueError(
+            f'Negative probability!\n\tp1={p1}\n\tp2={p2}\n\tk1={k1}\n\tk2={k2}')
 
+    if (p1 > 1) or (p2 > 1):
+        raise ValueError(
+            f'Probability > 1 !\n\tp1={p1}\n\tp2={p2}\n\tk1={k1}\n\tk2={k2}')
+
+    print(f'Generating random simplicial complex with \n\tp1={p1}\n\tp2={p2}\n\tk1={k1}\n\tk2={k2}')
+    
     nodes: List[int] = list(range(N))
     edges: List[Tuple[int, int]] = []
     triangles: List[Tuple[int, int, int]] = []
@@ -184,7 +196,8 @@ def from_random(N: int, k: float, k_delta: float):
 
     edges = list(set(edges))
 
-    return SimplicialComplex(nodes, edges, triangles, k, k_delta)
+    # return SimplicialComplex(nodes, edges, triangles, k1, k2)
+    return SimplicialComplex(nodes, edges, triangles)
 
 
 def from_pickle_file(filepath):

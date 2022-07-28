@@ -25,6 +25,16 @@
       "justMyCode": true
     },
     {
+      "name": "contagion scholp",
+      "type": "python",
+      "request": "launch",
+      "program": "contagion_model.py",
+      "args": ["-d", "email-Eu", "-e", "J_email-Eu_ex1", "-i", "10", "-f"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "contagion list datasets",
       "type": "python",
       "request": "launch",

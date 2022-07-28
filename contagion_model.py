@@ -17,6 +17,7 @@ from contagion.SimplicialComplex import (SimplicialComplex,
 from contagion.utils import (get_iacopini_cliques,
                              get_random_simplicial_complexes,
                              get_simplicialbros_datasets, parse_results)
+from contagion_experiments import simulations_parameters
 from directories import config, contagion_results_dir
 from logger import logger
 
@@ -25,233 +26,321 @@ MAX_TIMESTEPS = 2000
 ITERATIONS = 100
 PROCESSES = 6
 
-simulations_parameters = [
-    # {
-    #     # Infection parameters. For the slices with different values of lambda
-    #     "mu": 0.05,
-    #     # from 0.2 to 3.0 every 0.2. I use 3.1 because final value is not included
-    #     "lambdas": np.arange(0.2, 3.1, .3),
-    #     "rho0s_per_lambda_delta": {
-    #         0: [.01],
-    #         0.8: [.01],
-    #         2.5: [.01, .4]
-    #     },
-    #     # the rhos to simulate for specific lambda and lambda_delta
-    #     "rhos_over_time": {
-    #         "rho_0s": np.arange(.005, 1, .1),
-    #         "lambda": None,  # If not set is automatically chosen
-    #         "lambda_delta": None  # If not set is automatically chosen
-    #     }
-    # },
-    # {  # Experiment 1
-    #     "tag": "ex1",
-    #     "mu": 0.5,
-    #     "betas": np.array([.01]),
-    #     "rho0s_per_beta_delta": {
-    #         0.03333333333333333: [.2, .8]
-    #     },
-    #     "sigma": 0.003322259136212625,
-    #     "sigma_delta": 0.01107419712070875
-    # },
-    # {  # Experiment 1 no stochastic
-    #     "tag": "ex1_sigma0",
-    #     "mu": 0.5,
-    #     "betas": np.array([.01]),
-    #     "rho0s_per_beta_delta": {
-    #         0.03333333333333333: [.2, .8]
-    #     }
-    # },
-    # {  # Experiment 2
-    #     "tag": "ex2",
-    #     "mu": 0.970873786407767,
-    #     "betas": np.array([0.05]),
-    #     "rho0s_per_beta_delta": {
-    #         0.16666666666666666: [.2, .8]
-    #     },
-    #     "sigma": 0.023809523809523808,
-    #     "sigma_delta": 0.07936507936507936
-    # },
-    # {  # Experiment 2 no stochastic
-    #     "tag": "ex2_sigma0",
-    #     "mu": 0.970873786407767,
-    #     "betas": np.array([0.05]),
-    #     "rho0s_per_beta_delta": {
-    #         0.16666666666666666: [.2, .8]
-    #     }
-    # },
-    # {  # Experiment 3
-    #     "tag": "ex3",
-    #     "mu": 0.5,
-    #     "betas": np.array([.03]),
-    #     "rho0s_per_beta_delta": {
-    #         0.09999999999999999: [.2, .8]
-    #     },
-    #     "sigma": 0.009966777408637875,
-    #     "sigma_delta": 0.03322259136212625
-    # },
-    # {  # Experiment 3 no stochastic
-    #     "tag": "ex3_sigma0",
-    #     "mu": 0.5,
-    #     "betas": np.array([.03]),
-    #     "rho0s_per_beta_delta": {
-    #         0.09999999999999999: [.2, .8]
-    #     }
-    # }
-    {  # Experiment 1 paper
-        "tag": "ex1",
-        "mu": 0.7,
-        "betas": np.array([0.025]),
-        "rho0s_per_beta_delta": {
-            0.041666666666666664: [.2, .8]
-        },
-        "timesteps": 2000,
-        "sigma": 0.017499999999999998,
-        "sigma_delta": 0.041666666666666664,
-        "bounded_beta": False,
-        "independent_noises": False
-    },
-    {  # Experiment 1 paper no stochastic
-        "tag": "ex1_sigma0",
-        "mu": 0.7,
-        "betas": np.array([0.025]),
-        "rho0s_per_beta_delta": {
-            0.041666666666666664: [.2, .8]
-        },
-        "timesteps": 2000
-    },
-    {  # Experiment 2 paper
-        "tag": "ex2",
-        "mu": 0.5,
-        "betas": np.array([0.03]),
-        "rho0s_per_beta_delta": {
-            0.09999999999999999: [.2, .8]
-        },
-        "timesteps": 30000,
-        "sigma": 0.034999999999999996,
-        "sigma_delta": 0.11666666666666665,
-        "bounded_beta": False,
-        "independent_noises": False
-    },
-    {  # Experiment 2 paper no stochastic
-        "tag": "ex2_sigma0",
-        "mu": 0.5,
-        "betas": np.array([0.03]),
-        "rho0s_per_beta_delta": {
-            0.09999999999999999: [.2, .8]
-        },
-        "timesteps": 30000
-    },
-    {  # Experiment 3 paper
-        "tag": "ex3",
-        "mu": 0.7,
-        "betas": np.array([.04]),
-        "rho0s_per_beta_delta": {
-            0.13333333333333333: [.2, .8]
-        },
-        "timesteps": 2000,
-        "sigma": 0.01,
-        "sigma_delta": 0.03333333333333333,
-        "bounded_beta": False,
-        "independent_noises": False
-    },
-    {  # Experiment 3 no paper stochastic
-        "tag": "ex3_sigma0",
-        "mu": 0.7,
-        "betas": np.array([.04]),
-        "rho0s_per_beta_delta": {
-            0.13333333333333333: [.2, .8]
-        },
-        "timesteps": 2000,
-    },
-    {  # Juan's ex1
-        "tag": "ex1b",
-        "mu": 0.7,
-        "betas": np.array([0.013999999999999999]),
-        "rho0s_per_beta_delta": {
-            0.02: [.2, .8]
-        },
-        "timesteps": 2000,
-        "sigma": 0.01870828693386971,
-        "sigma_delta": 0.009354143466934854,
-        "bounded_beta": False,
-        "independent_noises": False
-    },
-    {  # Juan's ex1
-        "tag": "ex1b_sigma0",
-        "mu": 0.7,
-        "betas": np.array([0.013999999999999999]),
-        "rho0s_per_beta_delta": {
-            0.02: [.2, .8]
-        },
-        "timesteps": 2000
-    },
-    {  # Juan's ex2
-        "tag": "ex2b",
-        "mu": 0.5,
-        "betas": np.array([0.03]),
-        "rho0s_per_beta_delta": {
-            0.02: [.2, .8]
-        },
-        "timesteps": 20000,
-        "sigma": 0.035355339059327376,
-        "sigma_delta": 0.017677669529663688,
-        "bounded_beta": False,
-        "independent_noises": False
-    },
-    {  # Juan's ex2
-        "tag": "ex2b_sigma0",
-        "mu": 0.5,
-        "betas": np.array([0.03]),
-        "rho0s_per_beta_delta": {
-            0.02: [.2, .8]
-        },
-        "timesteps": 20000
-    },
-    {  # Juan's ex3
-        "tag": "ex3b",
-        "mu": 0.5,
-        "betas": np.array([0.0375]),
-        "rho0s_per_beta_delta": {
-            0.08: [.2, .8]
-        },
-        "timesteps": 2000,
-        "sigma": 0.02738612787525831,
-        "sigma_delta": 0.013693063937629155,
-        "bounded_beta": False,
-        "independent_noises": False
-    },
-    {  # Juan's ex3
-        "tag": "ex3b_sigma0",
-        "mu": 0.5,
-        "betas": np.array([0.0375]),
-        "rho0s_per_beta_delta": {
-            0.08: [.2, .8]
-        },
-        "timesteps": 2000
-    },
-    {  # Juan's ex2 InVS15
-        "tag": "ex2c",
-        "mu": 0.6,
-        "betas": np.array([0.03193514708591783]),
-        "rho0s_per_beta_delta": {
-            0.02: [.2, .8]
-        },
-        "timesteps": 2000,
-        "sigma": 0.03474086009637279,
-        "sigma_delta": 0.017370430048186395,
-        "bounded_beta": False,
-        "independent_noises": False
-    },
-    {  # Juan's ex2 InVS15
-        "tag": "ex2c_sigma0",
-        "mu": 0.6,
-        "betas": np.array([0.03193514708591783]),
-        "rho0s_per_beta_delta": {
-            0.02: [.2, .8]
-        },
-        "timesteps": 2000
-    },
-]
+# simulations_parameters = [
+#     # {
+#     #     # Infection parameters. For the slices with different values of lambda
+#     #     "mu": 0.05,
+#     #     # from 0.2 to 3.0 every 0.2. I use 3.1 because final value is not included
+#     #     "lambdas": np.arange(0.2, 3.1, .3),
+#     #     "rho0s_per_lambda_delta": {
+#     #         0: [.01],
+#     #         0.8: [.01],
+#     #         2.5: [.01, .4]
+#     #     },
+#     #     # the rhos to simulate for specific lambda and lambda_delta
+#     #     "rhos_over_time": {
+#     #         "rho_0s": np.arange(.005, 1, .1),
+#     #         "lambda": None,  # If not set is automatically chosen
+#     #         "lambda_delta": None  # If not set is automatically chosen
+#     #     }
+#     # },
+#     # {  # Experiment 1
+#     #     "tag": "ex1",
+#     #     "mu": 0.5,
+#     #     "betas": np.array([.01]),
+#     #     "rho0s_per_beta_delta": {
+#     #         0.03333333333333333: [.2, .8]
+#     #     },
+#     #     "sigma": 0.003322259136212625,
+#     #     "sigma_delta": 0.01107419712070875
+#     # },
+#     # {  # Experiment 1 no stochastic
+#     #     "tag": "ex1_sigma0",
+#     #     "mu": 0.5,
+#     #     "betas": np.array([.01]),
+#     #     "rho0s_per_beta_delta": {
+#     #         0.03333333333333333: [.2, .8]
+#     #     }
+#     # },
+#     # {  # Experiment 2
+#     #     "tag": "ex2",
+#     #     "mu": 0.970873786407767,
+#     #     "betas": np.array([0.05]),
+#     #     "rho0s_per_beta_delta": {
+#     #         0.16666666666666666: [.2, .8]
+#     #     },
+#     #     "sigma": 0.023809523809523808,
+#     #     "sigma_delta": 0.07936507936507936
+#     # },
+#     # {  # Experiment 2 no stochastic
+#     #     "tag": "ex2_sigma0",
+#     #     "mu": 0.970873786407767,
+#     #     "betas": np.array([0.05]),
+#     #     "rho0s_per_beta_delta": {
+#     #         0.16666666666666666: [.2, .8]
+#     #     }
+#     # },
+#     # {  # Experiment 3
+#     #     "tag": "ex3",
+#     #     "mu": 0.5,
+#     #     "betas": np.array([.03]),
+#     #     "rho0s_per_beta_delta": {
+#     #         0.09999999999999999: [.2, .8]
+#     #     },
+#     #     "sigma": 0.009966777408637875,
+#     #     "sigma_delta": 0.03322259136212625
+#     # },
+#     # {  # Experiment 3 no stochastic
+#     #     "tag": "ex3_sigma0",
+#     #     "mu": 0.5,
+#     #     "betas": np.array([.03]),
+#     #     "rho0s_per_beta_delta": {
+#     #         0.09999999999999999: [.2, .8]
+#     #     }
+#     # }
+#     {  # Experiment 1 paper
+#         "tag": "ex1",
+#         "mu": 0.7,
+#         "betas": np.array([0.025]),
+#         "rho0s_per_beta_delta": {
+#             0.041666666666666664: [.2, .8]
+#         },
+#         "timesteps": 2000,
+#         "sigma": 0.017499999999999998,
+#         "sigma_delta": 0.041666666666666664,
+#         "bounded_beta": False,
+#         "independent_noises": False
+#     },
+#     {  # Experiment 1 paper no stochastic
+#         "tag": "ex1_sigma0",
+#         "mu": 0.7,
+#         "betas": np.array([0.025]),
+#         "rho0s_per_beta_delta": {
+#             0.041666666666666664: [.2, .8]
+#         },
+#         "timesteps": 2000
+#     },
+#     {  # Experiment 2 paper
+#         "tag": "ex2",
+#         "mu": 0.5,
+#         "betas": np.array([0.03]),
+#         "rho0s_per_beta_delta": {
+#             0.09999999999999999: [.2, .8]
+#         },
+#         "timesteps": 30000,
+#         "sigma": 0.034999999999999996,
+#         "sigma_delta": 0.11666666666666665,
+#         "bounded_beta": False,
+#         "independent_noises": False
+#     },
+#     {  # Experiment 2 paper no stochastic
+#         "tag": "ex2_sigma0",
+#         "mu": 0.5,
+#         "betas": np.array([0.03]),
+#         "rho0s_per_beta_delta": {
+#             0.09999999999999999: [.2, .8]
+#         },
+#         "timesteps": 30000
+#     },
+#     {  # Experiment 3 paper
+#         "tag": "ex3",
+#         "mu": 0.7,
+#         "betas": np.array([.04]),
+#         "rho0s_per_beta_delta": {
+#             0.13333333333333333: [.2, .8]
+#         },
+#         "timesteps": 2000,
+#         "sigma": 0.01,
+#         "sigma_delta": 0.03333333333333333,
+#         "bounded_beta": False,
+#         "independent_noises": False
+#     },
+#     {  # Experiment 3 no paper stochastic
+#         "tag": "ex3_sigma0",
+#         "mu": 0.7,
+#         "betas": np.array([.04]),
+#         "rho0s_per_beta_delta": {
+#             0.13333333333333333: [.2, .8]
+#         },
+#         "timesteps": 2000,
+#     },
+#     {  # Juan's ex1
+#         "tag": "ex1b",
+#         "mu": 0.7,
+#         "betas": np.array([0.013999999999999999]),
+#         "rho0s_per_beta_delta": {
+#             0.02: [.2, .8]
+#         },
+#         "timesteps": 2000,
+#         "sigma": 0.01870828693386971,
+#         "sigma_delta": 0.009354143466934854,
+#         "bounded_beta": False,
+#         "independent_noises": False
+#     },
+#     {  # Juan's ex1
+#         "tag": "ex1b_sigma0",
+#         "mu": 0.7,
+#         "betas": np.array([0.013999999999999999]),
+#         "rho0s_per_beta_delta": {
+#             0.02: [.2, .8]
+#         },
+#         "timesteps": 2000
+#     },
+#     {  # Juan's ex2
+#         "tag": "ex2b",
+#         "mu": 0.5,
+#         "betas": np.array([0.03]),
+#         "rho0s_per_beta_delta": {
+#             0.02: [.2, .8]
+#         },
+#         "timesteps": 20000,
+#         "sigma": 0.035355339059327376,
+#         "sigma_delta": 0.017677669529663688,
+#         "bounded_beta": False,
+#         "independent_noises": False
+#     },
+#     {  # Juan's ex2
+#         "tag": "ex2b_sigma0",
+#         "mu": 0.5,
+#         "betas": np.array([0.03]),
+#         "rho0s_per_beta_delta": {
+#             0.02: [.2, .8]
+#         },
+#         "timesteps": 20000
+#     },
+#     {  # Juan's ex3
+#         "tag": "ex3b",
+#         "mu": 0.5,
+#         "betas": np.array([0.0375]),
+#         "rho0s_per_beta_delta": {
+#             0.08: [.2, .8]
+#         },
+#         "timesteps": 2000,
+#         "sigma": 0.02738612787525831,
+#         "sigma_delta": 0.013693063937629155,
+#         "bounded_beta": False,
+#         "independent_noises": False
+#     },
+#     {  # Juan's ex3
+#         "tag": "ex3b_sigma0",
+#         "mu": 0.5,
+#         "betas": np.array([0.0375]),
+#         "rho0s_per_beta_delta": {
+#             0.08: [.2, .8]
+#         },
+#         "timesteps": 2000
+#     },
+#     {  # Juan's ex2 InVS15
+#         "tag": "ex2c",
+#         "mu": 0.6,
+#         "betas": np.array([0.03193514708591783]),
+#         "rho0s_per_beta_delta": {
+#             0.02: [.2, .8]
+#         },
+#         "timesteps": 2000,
+#         "sigma": 0.03474086009637279,
+#         "sigma_delta": 0.017370430048186395,
+#         "bounded_beta": False,
+#         "independent_noises": False
+#     },
+#     {  # Juan's ex2 InVS15
+#         "tag": "ex2c_sigma0",
+#         "mu": 0.6,
+#         "betas": np.array([0.03193514708591783]),
+#         "rho0s_per_beta_delta": {
+#             0.02: [.2, .8]
+#         },
+#         "timesteps": 2000
+#     },
+#     {  # Javier's contact-high-school
+#         "tag": "J_contact-high-school_ex1",
+# 		"mu": 1,
+# 		"betas": np.array([0.007306578377449296]),
+# 		"rho0s_per_beta_delta": {
+# 			0.2758389873417721: [.04, .2]
+# 		},
+# 		"timesteps": 1000,
+# 		"sigma": 0.0056204881402543835,
+# 		"sigma_delta": 0.2121854686126602,
+# 		"bounded_delta": False,
+# 		"independent_noises": False
+#     },
+#     {  # Javier's contact-high-school
+#         "tag": "J_contact-high-school_ex1_sigma0",
+# 		"mu": 1,
+# 		"betas": np.array([0.007306578377449296]),
+# 		"rho0s_per_beta_delta": {
+# 			0.2758389873417721: [.04, .2]
+# 		},
+# 		"timesteps": 1000
+#     },
+#     {  # Javier's contact-high-school
+#         "tag": "J_contact-high-school_ex2a",
+#         "mu": 1,
+# 		"betas": np.array([0.02680871674114816]),
+# 		"rho0s_per_beta_delta": {
+# 			0.09772001772151896: [.01, .3]
+# 		},
+# 		"timesteps": 4000,
+# 		"sigma": 0.011522000687521485,
+# 		"sigma_delta": 0.041998657460682765,
+# 		"bounded_delta": False,
+# 		"independent_noises": False
+#     },
+#     {  # Javier's contact-high-school
+#         "tag": "J_contact-high-school_ex2a_sigma0",
+#         "mu": 1,
+# 		"betas": np.array([0.02680871674114816]),
+# 		"rho0s_per_beta_delta": {
+# 			0.09772001772151896: [.01, .3]
+# 		},
+# 		"timesteps": 4000
+#     },
+#     {
+# 		"tag": "J_contact-high-school_ex2b",
+# 		"mu": 1,
+# 		"betas": np.array([0.025224750773461674]),
+# 		"rho0s_per_beta_delta": {
+# 			0.09194632911392403: [0.01, 0.3]
+# 		},
+# 		"timesteps": 4000,
+# 		"sigma": 0.0056204881402543835,
+# 		"sigma_delta": 0.02048714998082086,
+# 		"bounded_delta": False,
+# 		"independent_noises": False
+# 	},
+# 	{
+# 		"tag": "J_contact-high-school_ex2b_sigma0",
+# 		"mu": 1,
+# 		"betas": np.array([0.025224750773461674]),
+# 		"rho0s_per_beta_delta": {
+# 			0.09194632911392403: [0.01, 0.3]
+# 		},
+# 		"timesteps": 4000
+# 	},
+#     {  # Javier's contact-high-school
+#         "tag": "J_contact-high-school_ex3",
+#         "mu": 0.5,
+# 		"betas": np.array([0.017535922997593677]),
+# 		"rho0s_per_beta_delta": {
+# 			0.02869873417721519: [.04, .4]
+# 		},
+# 		"timesteps": 1000,
+# 		"sigma": 0.0056204881402543835,
+# 		"sigma_delta": 0.009198312236286919,
+# 		"bounded_delta": False,
+# 		"independent_noises": False
+#     },
+#     {  # Javier's contact-high-school
+#         "tag": "J_contact-high-school_ex3_sigma0",
+#         "mu": 0.5,
+# 		"betas": np.array([0.017535922997593677]),
+# 		"rho0s_per_beta_delta": {
+# 			0.02869873417721519: [.04, .4]
+# 		},
+# 		"timesteps": 1000
+#     }
+# ]
 
 
 def select_parameters_for_rhos_over_time(stationary_rhos, lambda_delta=None):
@@ -398,7 +487,7 @@ def main(datasets: List[str], experiments: List[str], max_timesteps: int, iterat
                                  simulation_parameters, max_timesteps, iterations, processes)
 
             # And save the results to a pickle file
-            filepath = save_to_file(results_dir, label, 'pickle', results)
+            filepath = save_to_file(results_dir, label, 'pickle', results, overwrite=overwrite_files)
 
             logger.info(
                 '[%s]: Simulation finished. Saving results to %s', label, filepath)
