@@ -1,0 +1,32 @@
+[ArXiv]
+basedir = ~/Simplicial/arxiv
+baseurl = http://export.arxiv.org/oai2
+
+[Simplicial]
+basedir = ~/Simplicial
+
+[SimplicialDB]
+host = /var/run/postgresql/
+user = <yourdbuser>
+dbname = scholp
+max_qfaces = 300000000
+
+[Scholp]
+basedir = ~/Simplicial/scholp
+
+[Analysis]
+statsdir = ~/Simplicial/stats
+figuresdir = ~/Simplicial/figures
+
+[Logger]
+loglevel = INFO
+
+[Contagion]
+db_simplicial_complex_csvs = ~/Simplicial/simplagion
+random_simplicial_complex_dir = ~/Simplicial/simplagion-random-sc
+contagion_results_dir = ~/Simplicial/contagion_results_dir
+contagion_figures_dir = ~/Simplicial/figures/contagion
+
+[Iacopini]
+json_cliques_dir = ~/Simplicial/simplagion/Data/Sociopatterns/thr_data_random
+clique = random_5_0.8min_cliques_InVS15.json
