@@ -2,9 +2,8 @@
 
 This is the python repository for the works:
 
-> [Daniel Hernández Serrano, Juan Hernández-Serrano, Darío Sánchez Gómez, "Simplicial degree in complex networks. Applications of topological data analysis to network science", Chaos, Solitons & Fractals, Volume 137, 2020](https://doi.org/10.1016/j.chaos.2020.109839)
-
-> Daniel Hernández Serrano, Javier Villaroel, Juan Hernández-Serrano, Ángel Tocino, "Stochastic Simplicial Contagion Model". Submitted for publication in Chaos, Solitons & Fractals, July 2022.
+- [Daniel Hernández Serrano, Juan Hernández-Serrano, Darío Sánchez Gómez, "Simplicial degree in complex networks. Applications of topological data analysis to network science", Chaos, Solitons & Fractals, Volume 137, 2020](https://doi.org/10.1016/j.chaos.2020.109839)
+- [Daniel Hernández Serrano, Javier Villarroel, Juan Hernández-Serrano, Ángel Tocino, "Stochastic simplicial contagion model", Chaos, Solitons & Fractals, Volume 167, 2023](https://doi.org/10.1016/j.chaos.2022.113008.)
 
 ## Setup 
 
