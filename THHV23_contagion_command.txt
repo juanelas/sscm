@@ -1,0 +1,5 @@
+export dataset="InVS15"
+python contagion_model.py -d ${dataset} -e THHV23_${dataset}_ex1a,THHV23_${dataset}_ex1a_sigma0,THHV23_${dataset}_ex1b,THHV23_${dataset}_ex1b_sigma0,THHV23_${dataset}_ex2,THHV23_${dataset}_ex2_sigma0,THHV23_${dataset}_ex3,THHV23_${dataset}_ex3_sigma0 -i 10 -f
+
+export dataset="N500_k20.348_kdelta6.084"
+python contagion_model.py -d ${dataset} -e THHV23_${dataset}_ex1a,THHV23_${dataset}_ex1a_sigma0,THHV23_${dataset}_ex1b,THHV23_${dataset}_ex1b_sigma0,THHV23_${dataset}_ex2,THHV23_${dataset}_ex2_sigma0,THHV23_${dataset}_ex3,THHV23_${dataset}_ex3_sigma0 -i 10 -f

@@ -77,7 +77,7 @@ def plot(df,
             plt.text(x=vline[0], s=f' {vline[1]}', y=y, transform=trans,
                      rotation=0, verticalalignment='top',
                      size=10, color='red')
-            y -= .05
+            y -= .07
 
     if subdirectory:
         degree_figures_dir = os.path.join(figures_dir, 'degrees')

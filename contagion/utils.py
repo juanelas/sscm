@@ -291,7 +291,7 @@ def results_from_experiment(experiment_name: str, version: int = 2):
 
     return results, database
 
-# Notación moderna  sigma=sigma1*k
+# Notación moderna  sigma=sigma1*k1
 def get_simluation_parameters(dataset: str, mu: float, sigma: float, J0: float, J0_delta: float):
     sc = sc_from_dataset(dataset)
     k1 = sc.k

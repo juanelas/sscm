@@ -25,7 +25,7 @@ Install all requirements in `requirements.txt`
 - `faces_degrees`: compute q-faces and degrees. *It MUST be run after `facets.py`*. Run `python faces_degrees.py -h` for help.
 - `export_faces_to_csv`: exports computed faces from the database to a CSV file. Run `python export_faces_to_csv.py -h` for help.
 - `stats.py`: generate datasets and degrees statistics and exports them to a CSV file. Run `python stats.py -h` for help.
-- `figires.py`: generates figures regarding datasets and degrees' statistics. *It MUST be run after `stats.py`*.
+- `figures.py`: generates figures regarding datasets and degrees' statistics. *It MUST be run after `stats.py`*.
 
 ### The Stochastic Simplicial Contagion Model
 
